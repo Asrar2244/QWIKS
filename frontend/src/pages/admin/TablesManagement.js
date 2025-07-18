@@ -2,6 +2,65 @@ import React, { useState, useEffect } from 'react';
 import { tablesAPI, restaurantAPI, handleAPIError } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 
+const TableModal = ({ isOpen, onClose, onSubmit, formData, setFormData, isEditing }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg max-w-md w-full">
+        <div className="p-4">
+          <h2 className="text-lg font-bold mb-3">
+            {isEditing ? 'Edit Table' : 'Add New Table'}
+          </h2>
+          <form onSubmit={onSubmit} className="space-y-3">
+            <div>
+              <label htmlFor="number" className="block text-sm font-medium text-gray-700 mb-1">
+                Table Number *
+              </label>
+              <input
+                type="text"
+                id="number"
+                value={formData.number}
+                onChange={(e) => setFormData({ ...formData, number: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                Table Name (Optional)
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                placeholder="e.g., Window Seat, VIP Table"
+              />
+            </div>
+            <div className="flex justify-end space-x-2 pt-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-3 py-1.5 text-sm bg-primary text-white rounded hover:bg-secondary"
+              >
+                {isEditing ? 'Update' : 'Create'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TablesManagement = () => {
   const { user } = useAuth();
   const [tables, setTables] = useState([]);
@@ -82,61 +141,6 @@ const TablesManagement = () => {
     alert(successMessage);
   };
 
-  const TableModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-md w-full">
-        <div className="p-4">
-          <h2 className="text-lg font-bold mb-3">
-            {editingTable ? 'Edit Table' : 'Add New Table'}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <label htmlFor="number" className="block text-sm font-medium text-gray-700 mb-1">
-                Table Number *
-              </label>
-              <input
-                type="text"
-                id="number"
-                value={formData.number}
-                onChange={(e) => setFormData({...formData, number: e.target.value})}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Table Name (Optional)
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                placeholder="e.g., Window Seat, VIP Table"
-              />
-            </div>
-            <div className="flex justify-end space-x-2 pt-3">
-              <button
-                type="button"
-                onClick={closeModal}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-3 py-1.5 text-sm bg-primary text-white rounded hover:bg-secondary"
-              >
-                {editingTable ? 'Update' : 'Create'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -165,6 +169,15 @@ const TablesManagement = () => {
           {error}
         </div>
       )}
+
+      <TableModal
+        isOpen={showAddModal}
+        onClose={closeModal}
+        onSubmit={handleSubmit}
+        formData={formData}
+        setFormData={setFormData}
+        isEditing={!!editingTable}
+      />
 
       {tables.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
@@ -281,8 +294,6 @@ const TablesManagement = () => {
           </div>
         </div>
       )}
-
-      {showAddModal && <TableModal />}
     </div>
   );
 };

@@ -2,6 +2,146 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { publicAPI, handleAPIError } from '../../utils/api';
 
+const CartModal = ({
+  isOpen,
+  onClose,
+  cartItems,
+  onUpdateQuantity,
+  totalPrice,
+  totalItems,
+  customerData,
+  onCustomerChange,
+  onPlaceOrder,
+  isOrderLoading,
+  tableNumber,
+  restaurant,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 theme-modal-overlay">
+      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-hidden shadow-2xl theme-modal">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 sm:p-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold">Your Order</h2>
+              <p className="text-blue-100">Table {tableNumber}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors duration-200"
+            >
+              <span className="text-lg sm:text-xl">✕</span>
+            </button>
+          </div>
+        </div>
+        
+        <div className="p-4 sm:p-6 max-h-96 overflow-y-auto theme-modal-content">
+          {cartItems.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-4">🛒</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 theme-modal-title">Your cart is empty</h3>
+              <p className="text-gray-600 mb-6 theme-modal-text">Add some delicious items to get started!</p>
+              <button
+                onClick={onClose}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200"
+              >
+                Browse Menu
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Cart Items */}
+              <div className="space-y-3 mb-6">
+                {cartItems.map((item) => (
+                  <div key={item.menu_item} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl theme-cart-item">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900 text-sm theme-item-name">{item.menu_item_name}</h4>
+                      <p className="text-xs text-gray-600 theme-item-price">₹{item.price} each</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => onUpdateQuantity(item.menu_item, item.quantity - 1)}
+                        className="w-7 h-7 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200 transition-colors duration-200 text-sm"
+                      >
+                        -
+                      </button>
+                      <span className="w-6 text-center font-semibold text-sm theme-quantity">{item.quantity}</span>
+                      <button
+                        onClick={() => onUpdateQuantity(item.menu_item, item.quantity + 1)}
+                        className="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-200 transition-colors duration-200 text-sm"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Customer Info */}
+              <div className="space-y-3 mb-6 p-3 bg-blue-50 rounded-xl theme-contact-section">
+                <h3 className="font-semibold text-gray-900 flex items-center text-sm theme-contact-title">
+                  <span className="mr-2">👤</span> Contact Information
+                </h3>
+                <input
+                  type="text"
+                  name="customer_name"
+                  placeholder="Your name (optional)"
+                  value={customerData.customer_name}
+                  onChange={onCustomerChange}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 text-sm theme-contact-input"
+                />
+                <input
+                  type="tel"
+                  name="customer_phone"
+                  placeholder="Your phone number (optional)"
+                  value={customerData.customer_phone}
+                  onChange={onCustomerChange}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 text-sm theme-contact-input"
+                />
+                <textarea
+                  name="special_instructions"
+                  placeholder="Special instructions (optional)"
+                  value={customerData.special_instructions || ''}
+                  onChange={onCustomerChange}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 resize-none text-sm theme-contact-input"
+                  rows={2}
+                />
+              </div>
+
+              {/* Total */}
+              <div className="bg-gray-900 text-white p-3 rounded-xl mb-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-base font-semibold">Total ({totalItems} items)</span>
+                  <span className="text-xl font-bold">₹{totalPrice}</span>
+                </div>
+              </div>
+
+              {/* Place Order Button */}
+              <button
+                onClick={onPlaceOrder}
+                disabled={isOrderLoading}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isOrderLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="loading-spinner mr-2"></div>
+                    Placing Order...
+                  </div>
+                ) : (
+                  `Place Order - ₹${totalPrice}`
+                )}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 const CustomerMenu = () => {
   const { restaurantSlug, tableId } = useParams();
   const navigate = useNavigate();
@@ -338,125 +478,6 @@ const CustomerMenu = () => {
     </div>
   );
 
-  const CartModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 theme-modal-overlay">
-      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-hidden shadow-2xl theme-modal">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 sm:p-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold">Your Order</h2>
-              <p className="text-blue-100">Table {menuData?.table?.number}</p>
-            </div>
-            <button
-              onClick={() => setShowCart(false)}
-              className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors duration-200"
-            >
-              <span className="text-lg sm:text-xl">✕</span>
-            </button>
-          </div>
-        </div>
-        
-        <div className="p-4 sm:p-6 max-h-96 overflow-y-auto theme-modal-content">
-          {cart.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-4xl mb-4">🛒</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2 theme-modal-title">Your cart is empty</h3>
-              <p className="text-gray-600 mb-6 theme-modal-text">Add some delicious items to get started!</p>
-              <button
-                onClick={() => setShowCart(false)}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200"
-              >
-                Browse Menu
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Cart Items */}
-              <div className="space-y-3 mb-6">
-                {cart.map((item) => (
-                  <div key={item.menu_item} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl theme-cart-item">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 text-sm theme-item-name">{item.menu_item_name}</h4>
-                      <p className="text-xs text-gray-600 theme-item-price">₹{item.price} each</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => updateCartQuantity(item.menu_item, item.quantity - 1)}
-                        className="w-7 h-7 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200 transition-colors duration-200 text-sm"
-                      >
-                        -
-                      </button>
-                      <span className="w-6 text-center font-semibold text-sm theme-quantity">{item.quantity}</span>
-                      <button
-                        onClick={() => updateCartQuantity(item.menu_item, item.quantity + 1)}
-                        className="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-200 transition-colors duration-200 text-sm"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Customer Info */}
-              <div className="space-y-3 mb-6 p-3 bg-blue-50 rounded-xl theme-contact-section">
-                <h3 className="font-semibold text-gray-900 flex items-center text-sm theme-contact-title">
-                  <span className="mr-2">👤</span> Contact Information
-                </h3>
-                <input
-                  type="text"
-                  placeholder="Your name (optional)"
-                  value={customerInfo.customer_name}
-                  onChange={(e) => setCustomerInfo({...customerInfo, customer_name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 text-sm theme-contact-input"
-                />
-                <input
-                  type="tel"
-                  placeholder="Your phone number (optional)"
-                  value={customerInfo.customer_phone}
-                  onChange={(e) => setCustomerInfo({...customerInfo, customer_phone: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 text-sm theme-contact-input"
-                />
-                <textarea
-                  placeholder="Special instructions (optional)"
-                  value={customerInfo.special_instructions || ''}
-                  onChange={(e) => setCustomerInfo({...customerInfo, special_instructions: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 resize-none text-sm theme-contact-input"
-                  rows={2}
-                />
-              </div>
-
-              {/* Total */}
-              <div className="bg-gray-900 text-white p-3 rounded-xl mb-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-base font-semibold">Total ({getTotalItems()} items)</span>
-                  <span className="text-xl font-bold">₹{getTotalPrice()}</span>
-                </div>
-              </div>
-
-              {/* Place Order Button */}
-              <button
-                onClick={handlePlaceOrder}
-                disabled={orderLoading}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {orderLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="loading-spinner mr-2"></div>
-                    Placing Order...
-                  </div>
-                ) : (
-                  `Place Order - ₹${getTotalPrice()}`
-                )}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
@@ -708,7 +729,20 @@ const CustomerMenu = () => {
         </div>
       )}
 
-      {showCart && <CartModal />}
+      <CartModal
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+        cartItems={cart}
+        onUpdateQuantity={updateCartQuantity}
+        totalPrice={getTotalPrice()}
+        totalItems={getTotalItems()}
+        customerData={customerInfo}
+        onCustomerChange={(e) => setCustomerInfo({ ...customerInfo, [e.target.name]: e.target.value })}
+        onPlaceOrder={handlePlaceOrder}
+        isOrderLoading={orderLoading}
+        tableNumber={menuData?.table?.number}
+        restaurant={menuData?.restaurant}
+      />
       {showCategoryMenu && <CategoryMenuModal />}
     </div>
   );

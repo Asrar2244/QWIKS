@@ -1,6 +1,271 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { categoriesAPI, menuItemsAPI, handleAPIError } from '../../utils/api';
 
+const CategoryModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  formData,
+  setFormData,
+  isEditing,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg max-w-md w-full">
+        <div className="p-4">
+          <h2 className="text-lg font-bold mb-3">
+            {isEditing ? 'Edit Category' : 'Add New Category'}
+          </h2>
+          <form onSubmit={onSubmit} className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                rows={2}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
+              <input
+                type="number"
+                value={formData.order}
+                onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              />
+            </div>
+            <div className="flex justify-end space-x-2 pt-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-3 py-1.5 text-sm bg-primary text-white rounded hover:bg-secondary"
+              >
+                {isEditing ? 'Update' : 'Create'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Move ItemModal outside the main component
+const ItemModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  formData,
+  setFormData,
+  categories,
+  isEditing,
+}) => {
+  if (!isOpen) return null;
+
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, image: e.target.files[0] });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-4">
+          <h2 className="text-lg font-bold mb-3">
+            {isEditing ? 'Edit Menu Item' : 'Add New Menu Item'}
+          </h2>
+          
+          {categories.length === 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mb-3">
+              <p className="text-sm text-amber-800">
+                ⚠️ Create at least one category first before adding an item.
+              </p>
+            </div>
+          )}
+          
+          <form onSubmit={onSubmit} className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+                <input
+                  type="number"
+                  name="price"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                required
+                disabled={categories.length === 0}
+              >
+                <option value="">Select a category</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>{category.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+              <input
+                type="file"
+                name="image"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-primary file:text-white hover:file:bg-secondary"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Prep Time (min)</label>
+                <input
+                  type="number"
+                  name="preparation_time"
+                  value={formData.preparation_time}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
+                <input
+                  type="number"
+                  name="order"
+                  value={formData.order}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Options</label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    name="is_available"
+                    checked={formData.is_available}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  Available
+                </label>
+                <label className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    name="is_vegetarian"
+                    checked={formData.is_vegetarian}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  Vegetarian
+                </label>
+                <label className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    name="is_vegan"
+                    checked={formData.is_vegan}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  Vegan
+                </label>
+                <label className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    name="is_spicy"
+                    checked={formData.is_spicy}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  Spicy
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-3 py-1.5 text-sm bg-primary text-white rounded hover:bg-secondary"
+              >
+                {isEditing ? 'Update' : 'Create'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MenuManagement = () => {
   const [categories, setCategories] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
@@ -63,9 +328,7 @@ const MenuManagement = () => {
       } else {
         await categoriesAPI.create(categoryForm);
       }
-      setShowCategoryModal(false);
-      setEditingCategory(null);
-      setCategoryForm({ name: '', description: '', order: 0 });
+      closeCategoryModal();
       fetchData();
     } catch (error) {
       setError(handleAPIError(error));
@@ -89,14 +352,24 @@ const MenuManagement = () => {
       } else {
         await menuItemsAPI.create(formData);
       }
-      setShowItemModal(false);
-      setEditingItem(null);
-      resetItemForm();
+      closeItemModal();
       fetchData();
     } catch (error) {
       setError(handleAPIError(error));
     }
   }, [editingItem, itemForm, fetchData]);
+
+  const closeCategoryModal = () => {
+    setShowCategoryModal(false);
+    setEditingCategory(null);
+    setCategoryForm({ name: '', description: '', order: 0 });
+  };
+
+  const closeItemModal = () => {
+    setShowItemModal(false);
+    setEditingItem(null);
+    resetItemForm();
+  };
 
   const resetItemForm = () => {
     setItemForm({
@@ -190,242 +463,6 @@ const MenuManagement = () => {
     
     return categoryMatch && searchMatch && vegMatch;
   });
-
-  const CategoryModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-md w-full">
-        <div className="p-4">
-          <h2 className="text-lg font-bold mb-3">
-            {editingCategory ? 'Edit Category' : 'Add New Category'}
-          </h2>
-          <form onSubmit={handleCategorySubmit} className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-              <input
-                type="text"
-                value={categoryForm.name}
-                onChange={(e) => setCategoryForm({...categoryForm, name: e.target.value})}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                value={categoryForm.description}
-                onChange={(e) => setCategoryForm({...categoryForm, description: e.target.value})}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                rows={2}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-              <input
-                type="number"
-                value={categoryForm.order}
-                onChange={(e) => setCategoryForm({...categoryForm, order: parseInt(e.target.value) || 0})}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-              />
-            </div>
-            <div className="flex justify-end space-x-2 pt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCategoryModal(false);
-                  setEditingCategory(null);
-                  setCategoryForm({ name: '', description: '', order: 0 });
-                }}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button type="submit" className="px-3 py-1.5 text-sm bg-primary text-white rounded hover:bg-secondary">
-                {editingCategory ? 'Update' : 'Create'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-
-  const ItemModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-4">
-          <h2 className="text-lg font-bold mb-3">
-            {editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}
-          </h2>
-          
-          {categories.length === 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mb-3">
-              <p className="text-sm text-amber-800">
-                ⚠️ Create at least one category first.
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowItemModal(false);
-                    setActiveTab('categories');
-                    setShowCategoryModal(true);
-                  }}
-                  className="ml-2 text-amber-800 underline hover:text-amber-900"
-                >
-                  Create category
-                </button>
-              </p>
-            </div>
-          )}
-          
-          <form onSubmit={handleItemSubmit} className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                <input
-                  type="text"
-                  value={itemForm.name}
-                  onChange={(e) => setItemForm({...itemForm, name: e.target.value})}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={itemForm.price}
-                  onChange={(e) => setItemForm({...itemForm, price: e.target.value})}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-              {categories.length === 0 ? (
-                <select disabled className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-100">
-                  <option>No categories available</option>
-                </select>
-              ) : (
-                <select
-                  value={itemForm.category}
-                  onChange={(e) => setItemForm({...itemForm, category: e.target.value})}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                  required
-                >
-                  <option value="">Select a category</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>{category.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                value={itemForm.description}
-                onChange={(e) => setItemForm({...itemForm, description: e.target.value})}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                rows={2}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setItemForm({...itemForm, image: e.target.files[0]})}
-                className="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-primary file:text-white hover:file:bg-secondary"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Prep Time (min)</label>
-                <input
-                  type="number"
-                  value={itemForm.preparation_time}
-                  onChange={(e) => setItemForm({...itemForm, preparation_time: parseInt(e.target.value) || 15})}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-                <input
-                  type="number"
-                  value={itemForm.order}
-                  onChange={(e) => setItemForm({...itemForm, order: parseInt(e.target.value) || 0})}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Options</label>
-              <div className="grid grid-cols-2 gap-2">
-                <label className="flex items-center text-sm">
-                  <input
-                    type="checkbox"
-                    checked={itemForm.is_available}
-                    onChange={(e) => setItemForm({...itemForm, is_available: e.target.checked})}
-                    className="mr-2"
-                  />
-                  Available
-                </label>
-                <label className="flex items-center text-sm">
-                  <input
-                    type="checkbox"
-                    checked={itemForm.is_vegetarian}
-                    onChange={(e) => setItemForm({...itemForm, is_vegetarian: e.target.checked})}
-                    className="mr-2"
-                  />
-                  Vegetarian
-                </label>
-                <label className="flex items-center text-sm">
-                  <input
-                    type="checkbox"
-                    checked={itemForm.is_vegan}
-                    onChange={(e) => setItemForm({...itemForm, is_vegan: e.target.checked})}
-                    className="mr-2"
-                  />
-                  Vegan
-                </label>
-                <label className="flex items-center text-sm">
-                  <input
-                    type="checkbox"
-                    checked={itemForm.is_spicy}
-                    onChange={(e) => setItemForm({...itemForm, is_spicy: e.target.checked})}
-                    className="mr-2"
-                  />
-                  Spicy
-                </label>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowItemModal(false);
-                  setEditingItem(null);
-                  resetItemForm();
-                }}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button type="submit" className="px-3 py-1.5 text-sm bg-primary text-white rounded hover:bg-secondary">
-                {editingItem ? 'Update' : 'Create'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
 
   if (loading) {
     return (
@@ -739,8 +776,26 @@ const MenuManagement = () => {
         </div>
       </div>
 
-      {showCategoryModal && <CategoryModal />}
-      {showItemModal && <ItemModal />}
+      {/* Category Modal */}
+      <CategoryModal
+        isOpen={showCategoryModal}
+        onClose={closeCategoryModal}
+        onSubmit={handleCategorySubmit}
+        formData={categoryForm}
+        setFormData={setCategoryForm}
+        isEditing={!!editingCategory}
+      />
+
+      {/* Item Modal */}
+      <ItemModal
+        isOpen={showItemModal}
+        onClose={closeItemModal}
+        onSubmit={handleItemSubmit}
+        formData={itemForm}
+        setFormData={setItemForm}
+        categories={categories}
+        isEditing={!!editingItem}
+      />
     </div>
   );
 };
