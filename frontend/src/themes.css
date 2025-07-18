@@ -1,0 +1,601 @@
+/* Theme Styles for QR Menu App */
+
+/* Light Theme (Default) */
+.theme-light {
+  background-color: #f8fafc !important;
+  color: #1f2937 !important;
+}
+
+.theme-light .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, #eff6ff, #f3e8ff) !important;
+}
+
+/* Dark Theme */
+.theme-dark {
+  background-color: #111827 !important;
+  color: #f9fafb !important;
+}
+
+.theme-dark .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, #1f2937, #374151) !important;
+}
+
+/* Header Styles - Dark Theme */
+.theme-dark .bg-white\/95 {
+  background: rgba(31, 41, 55, 0.95) !important;
+  color: #f9fafb !important;
+}
+
+.theme-dark .bg-white {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+.theme-dark .text-gray-900 {
+  color: #f9fafb !important;
+}
+
+.theme-dark .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+.theme-dark .text-gray-700 {
+  color: #e5e7eb !important;
+}
+
+.theme-dark .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+.theme-dark .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+/* Border and Background Styles - Dark Theme */
+.theme-dark .border-gray-100 {
+  border-color: #374151 !important;
+}
+
+.theme-dark .border-gray-200 {
+  border-color: #4b5563 !important;
+}
+
+.theme-dark .border-gray-300 {
+  border-color: #6b7280 !important;
+}
+
+.theme-dark .bg-gray-50 {
+  background-color: #374151 !important;
+}
+
+.theme-dark .bg-gray-100 {
+  background-color: #4b5563 !important;
+}
+
+.theme-dark .bg-blue-50 {
+  background-color: #1e3a8a !important;
+  color: #dbeafe !important;
+}
+
+/* Search Bar - Dark Theme */
+.theme-dark input {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+.theme-dark input::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Category Slider - Dark Theme */
+.theme-dark .bg-white\/95.backdrop-blur-sm {
+  background: rgba(31, 41, 55, 0.95) !important;
+  border-bottom-color: #374151 !important;
+}
+
+/* Category Buttons - Dark Theme */
+.theme-dark button:not(.bg-gradient-to-r) {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+.theme-dark button:not(.bg-gradient-to-r):hover {
+  background-color: #374151 !important;
+}
+
+/* Shadows - Dark Theme */
+.theme-dark .shadow-sm,
+.theme-dark .shadow-md,
+.theme-dark .shadow-lg,
+.theme-dark .shadow-xl,
+.theme-dark .shadow-2xl {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Modern Theme */
+.theme-modern {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #ffffff !important;
+  min-height: 100vh !important;
+}
+
+.theme-modern .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, #667eea, #764ba2) !important;
+}
+
+/* Header Styles - Modern Theme */
+.theme-modern .bg-white\/95 {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.theme-modern .bg-white {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.theme-modern .text-gray-900 {
+  color: #ffffff !important;
+}
+
+.theme-modern .text-gray-600 {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.theme-modern .text-gray-700 {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.theme-modern .text-gray-500 {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.theme-modern .text-gray-400 {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Border and Background Styles - Modern Theme */
+.theme-modern .border-gray-100 {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.theme-modern .border-gray-200 {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.theme-modern .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.theme-modern .bg-gray-50 {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.theme-modern .bg-gray-100 {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.theme-modern .bg-blue-50 {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+/* Search Bar - Modern Theme */
+.theme-modern input {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.theme-modern input::placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Category Slider - Modern Theme */
+.theme-modern .bg-white\/95.backdrop-blur-sm {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(15px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Category Buttons - Modern Theme */
+.theme-modern button:not(.bg-gradient-to-r) {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.theme-modern button:not(.bg-gradient-to-r):hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Shadows - Modern Theme */
+.theme-modern .shadow-sm,
+.theme-modern .shadow-md,
+.theme-modern .shadow-lg,
+.theme-modern .shadow-xl,
+.theme-modern .shadow-2xl {
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37) !important;
+}
+
+/* Button overrides for themes */
+.theme-dark .bg-gradient-to-r.from-blue-500 {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6) !important;
+}
+
+.theme-modern .bg-gradient-to-r.from-blue-500 {
+  background: linear-gradient(to right, rgba(255,255,255,0.3), rgba(255,255,255,0.1)) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255,255,255,0.4) !important;
+}
+
+/* Apply theme to root containers */
+.theme-light .min-h-screen {
+  background: linear-gradient(to bottom right, #eff6ff, #f3e8ff) !important;
+}
+
+.theme-dark .min-h-screen {
+  background: linear-gradient(to bottom right, #1f2937, #374151) !important;
+}
+
+.theme-modern .min-h-screen {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+/* Modal Styles for All Themes */
+/* Dark Theme Modals */
+.theme-dark .fixed.inset-0.bg-black {
+  background: rgba(0, 0, 0, 0.8) !important;
+}
+
+.theme-dark .bg-white.rounded-2xl {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border: 1px solid #374151 !important;
+}
+
+/* Modern Theme Modals */
+.theme-modern .fixed.inset-0.bg-black {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.theme-modern .bg-white.rounded-2xl {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+}
+
+/* Contact Information Modal Specific Styles */
+.theme-dark .space-y-3.mb-6.p-3.bg-blue-50.rounded-xl {
+  background-color: #1e3a8a !important;
+  color: #dbeafe !important;
+}
+
+.theme-modern .space-y-3.mb-6.p-3.bg-blue-50.rounded-xl {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+/* Input field specific overrides */
+.theme-dark input[type="text"],
+.theme-dark input[type="tel"],
+.theme-dark textarea {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border-color: #6b7280 !important;
+}
+
+.theme-modern input[type="text"],
+.theme-modern input[type="tel"],
+.theme-modern textarea {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Override specific utility classes that might have higher specificity */
+.theme-dark .sticky.top-0,
+.theme-dark .sticky.top-16,
+.theme-dark .sticky.top-20 {
+  background: rgba(31, 41, 55, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.theme-modern .sticky.top-0,
+.theme-modern .sticky.top-16,
+.theme-modern .sticky.top-20 {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(15px) !important;
+}
+
+/* Specific Theme Classes for Better Targeting */
+
+/* Header Theme Classes */
+.theme-dark .theme-header {
+  background: rgba(31, 41, 55, 0.95) !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+.theme-modern .theme-header {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(15px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Title and Subtitle Theme Classes */
+.theme-dark .theme-title {
+  color: #f9fafb !important;
+}
+
+.theme-dark .theme-subtitle {
+  color: #d1d5db !important;
+}
+
+.theme-modern .theme-title {
+  color: #ffffff !important;
+}
+
+.theme-modern .theme-subtitle {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Button Theme Classes */
+.theme-dark .theme-button {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+.theme-dark .theme-button:hover {
+  background-color: #374151 !important;
+}
+
+.theme-modern .theme-button {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.theme-modern .theme-button:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Icon Theme Classes */
+.theme-dark .theme-icon {
+  color: #d1d5db !important;
+}
+
+.theme-modern .theme-icon {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Search Input Theme Classes */
+.theme-dark .theme-search-input {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+.theme-dark .theme-search-input::placeholder {
+  color: #9ca3af !important;
+}
+
+.theme-modern .theme-search-input {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.theme-modern .theme-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Category Bar Theme Classes */
+.theme-dark .theme-category-bar {
+  background: rgba(31, 41, 55, 0.95) !important;
+  border-bottom-color: #374151 !important;
+}
+
+.theme-modern .theme-category-bar {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(15px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Clear Button Theme Classes */
+.theme-dark .theme-clear-button {
+  color: #9ca3af !important;
+}
+
+.theme-dark .theme-clear-button:hover {
+  color: #d1d5db !important;
+}
+
+.theme-modern .theme-clear-button {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.theme-modern .theme-clear-button:hover {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Modal Theme Classes */
+.theme-dark .theme-modal-overlay {
+  background: rgba(0, 0, 0, 0.8) !important;
+}
+
+.theme-modern .theme-modal-overlay {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.theme-dark .theme-modal {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border: 1px solid #374151 !important;
+}
+
+.theme-modern .theme-modal {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+}
+
+/* Modal Content Theme Classes */
+.theme-dark .theme-modal-content {
+  background-color: #1f2937 !important;
+}
+
+.theme-modern .theme-modal-content {
+  background: transparent !important;
+}
+
+.theme-dark .theme-modal-title {
+  color: #f9fafb !important;
+}
+
+.theme-dark .theme-modal-text {
+  color: #d1d5db !important;
+}
+
+.theme-modern .theme-modal-title {
+  color: #ffffff !important;
+}
+
+.theme-modern .theme-modal-text {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Category Item Theme Classes */
+.theme-dark .theme-category-item {
+  color: #f9fafb !important;
+}
+
+.theme-dark .theme-category-item:hover {
+  background-color: #374151 !important;
+}
+
+.theme-dark .theme-category-item.bg-blue-50 {
+  background-color: #1e3a8a !important;
+  color: #dbeafe !important;
+}
+
+.theme-modern .theme-category-item {
+  color: #ffffff !important;
+}
+
+.theme-modern .theme-category-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.theme-modern .theme-category-item.bg-blue-50 {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.theme-dark .theme-category-name {
+  color: #f9fafb !important;
+}
+
+.theme-dark .theme-category-description {
+  color: #9ca3af !important;
+}
+
+.theme-modern .theme-category-name {
+  color: #ffffff !important;
+}
+
+.theme-modern .theme-category-description {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.theme-dark .theme-item-count {
+  background-color: #4b5563 !important;
+  color: #d1d5db !important;
+}
+
+.theme-modern .theme-item-count {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+/* Cart Item Theme Classes */
+.theme-dark .theme-cart-item {
+  background-color: #374151 !important;
+}
+
+.theme-modern .theme-cart-item {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.theme-dark .theme-item-name {
+  color: #f9fafb !important;
+}
+
+.theme-dark .theme-item-price {
+  color: #d1d5db !important;
+}
+
+.theme-dark .theme-quantity {
+  color: #f9fafb !important;
+}
+
+.theme-modern .theme-item-name {
+  color: #ffffff !important;
+}
+
+.theme-modern .theme-item-price {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.theme-modern .theme-quantity {
+  color: #ffffff !important;
+}
+
+/* Contact Section Theme Classes */
+.theme-dark .theme-contact-section {
+  background-color: #1e3a8a !important;
+}
+
+.theme-modern .theme-contact-section {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.theme-dark .theme-contact-title {
+  color: #dbeafe !important;
+}
+
+.theme-modern .theme-contact-title {
+  color: #ffffff !important;
+}
+
+.theme-dark .theme-contact-input {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border-color: #6b7280 !important;
+}
+
+.theme-dark .theme-contact-input::placeholder {
+  color: #9ca3af !important;
+}
+
+.theme-modern .theme-contact-input {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.theme-modern .theme-contact-input::placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+} 
