@@ -1,0 +1,304 @@
+from rest_framework import generics, status, permissions, viewsets
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+from django.db.models import Count, Sum, Q
+from django.utils import timezone
+from datetime import timedelta
+from django.shortcuts import get_object_or_404
+
+from .models import RestaurantUser, Restaurant, Table, Category, MenuItem, Order, OrderItem
+from .serializers import (
+    RestaurantUserRegistrationSerializer, RestaurantUserLoginSerializer, RestaurantUserProfileSerializer,
+    RestaurantSerializer, RestaurantBrandingSerializer, TableSerializer, CategorySerializer,
+    MenuItemSerializer, MenuItemPublicSerializer, OrderSerializer, OrderCreateSerializer,
+    OrderStatusUpdateSerializer, OrderEditSerializer, ChangePasswordSerializer,
+    ForgotPasswordSerializer, ResetPasswordSerializer, DashboardStatsSerializer, PublicMenuSerializer
+)
+
+
+class RestaurantOwnerPermission(permissions.BasePermission):
+    """Custom permission to ensure user can only access their restaurant's data"""
+    
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and hasattr(request.user, 'restaurant')
+    
+    def has_object_permission(self, request, view, obj):
+        # Check if object belongs to user's restaurant
+        if hasattr(obj, 'restaurant'):
+            return obj.restaurant == request.user.restaurant
+        elif hasattr(obj, 'order') and hasattr(obj.order, 'restaurant'):
+            return obj.order.restaurant == request.user.restaurant
+        return False
+
+
+# Authentication Views
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_view(request):
+    """Register a new restaurant user"""
+    serializer = RestaurantUserRegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'user': RestaurantUserProfileSerializer(user).data,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        }, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_view(request):
+    """Login a restaurant user"""
+    serializer = RestaurantUserLoginSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.validated_data['user']
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'user': RestaurantUserProfileSerializer(user).data,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        })
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def profile_view(request):
+    """Get user profile"""
+    serializer = RestaurantUserProfileSerializer(request.user)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password_view(request):
+    """Change user password"""
+    serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+    if serializer.is_valid():
+        user = request.user
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        return Response({'message': 'Password changed successfully'})
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def forgot_password_view(request):
+    """Send password reset email (simplified for demo)"""
+    serializer = ForgotPasswordSerializer(data=request.data)
+    if serializer.is_valid():
+        # In production, you would send an email with reset token
+        return Response({'message': 'Password reset email sent'})
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_password_view(request):
+    """Reset password (simplified for demo)"""
+    serializer = ResetPasswordSerializer(data=request.data)
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+        new_password = serializer.validated_data['new_password']
+        
+        try:
+            user = RestaurantUser.objects.get(email=email)
+            user.set_password(new_password)
+            user.save()
+            return Response({'message': 'Password reset successfully'})
+        except RestaurantUser.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Restaurant Views
+class RestaurantDetailView(generics.RetrieveUpdateAPIView):
+    """Get and update restaurant details"""
+    serializer_class = RestaurantSerializer
+    permission_classes = [RestaurantOwnerPermission]
+    
+    def get_object(self):
+        return self.request.user.restaurant
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def restaurant_branding_view(request, slug):
+    """Get public restaurant branding information"""
+    restaurant = get_object_or_404(Restaurant, slug=slug)
+    serializer = RestaurantBrandingSerializer(restaurant, context={'request': request})
+    return Response(serializer.data)
+
+
+# Table Views
+class TableViewSet(viewsets.ModelViewSet):
+    """ViewSet for table management"""
+    serializer_class = TableSerializer
+    permission_classes = [RestaurantOwnerPermission]
+    
+    def get_queryset(self):
+        return Table.objects.filter(restaurant=self.request.user.restaurant)
+
+
+# Category Views
+class CategoryViewSet(viewsets.ModelViewSet):
+    """ViewSet for category management"""
+    serializer_class = CategorySerializer
+    permission_classes = [RestaurantOwnerPermission]
+    
+    def get_queryset(self):
+        return Category.objects.filter(restaurant=self.request.user.restaurant)
+
+
+# Menu Item Views
+class MenuItemViewSet(viewsets.ModelViewSet):
+    """ViewSet for menu item management"""
+    serializer_class = MenuItemSerializer
+    permission_classes = [RestaurantOwnerPermission]
+    
+    def get_queryset(self):
+        queryset = MenuItem.objects.filter(restaurant=self.request.user.restaurant)
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+        return queryset
+
+
+# Order Views
+class OrderViewSet(viewsets.ModelViewSet):
+    """ViewSet for order management"""
+    serializer_class = OrderSerializer
+    permission_classes = [RestaurantOwnerPermission]
+    
+    def get_queryset(self):
+        queryset = Order.objects.filter(restaurant=self.request.user.restaurant)
+        status_filter = self.request.query_params.get('status')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        return queryset
+    
+    @action(detail=True, methods=['patch'])
+    def status(self, request, pk=None):
+        """Update order status"""
+        order = self.get_object()
+        serializer = OrderStatusUpdateSerializer(order, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['put'])
+    def edit(self, request, pk=None):
+        """Edit order details"""
+        order = self.get_object()
+        serializer = OrderEditSerializer(order, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(OrderSerializer(order).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['patch'])
+    def mark_read(self, request, pk=None):
+        """Mark order notification as read"""
+        order = self.get_object()
+        order.notification_read = True
+        order.save()
+        return Response({'message': 'Notification marked as read'})
+    
+    @action(detail=False, methods=['get'])
+    def notifications(self, request):
+        """Get unread order notifications"""
+        unread_orders = Order.objects.filter(
+            restaurant=request.user.restaurant,
+            notification_read=False
+        ).order_by('-created_at')
+        serializer = OrderSerializer(unread_orders, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+# Public Order Creation
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_order_view(request):
+    """Create a new order (public endpoint)"""
+    serializer = OrderCreateSerializer(data=request.data)
+    if serializer.is_valid():
+        order = serializer.save()
+        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Public Menu View
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def public_menu_view(request, slug, table_id):
+    """Get public menu for a restaurant and table"""
+    try:
+        restaurant = Restaurant.objects.get(slug=slug)
+        table = Table.objects.get(id=table_id, restaurant=restaurant, is_active=True)
+        
+        # Get categories and menu items
+        categories = Category.objects.filter(restaurant=restaurant, is_active=True).order_by('order', 'name')
+        menu_items = MenuItem.objects.filter(
+            restaurant=restaurant, 
+            is_available=True
+        ).order_by('category__order', 'order', 'name')
+        
+        data = {
+            'restaurant': RestaurantBrandingSerializer(restaurant, context={'request': request}).data,
+            'table': TableSerializer(table, context={'request': request}).data,
+            'categories': CategorySerializer(categories, many=True, context={'request': request}).data,
+            'menu_items': MenuItemPublicSerializer(menu_items, many=True, context={'request': request}).data
+        }
+        
+        return Response(data)
+    
+    except Restaurant.DoesNotExist:
+        return Response({'error': 'Restaurant not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Table.DoesNotExist:
+        return Response({'error': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# Dashboard Views
+@api_view(['GET'])
+@permission_classes([RestaurantOwnerPermission])
+def dashboard_stats_view(request):
+    """Get dashboard statistics"""
+    restaurant = request.user.restaurant
+    today = timezone.now().date()
+    
+    # Get statistics
+    total_orders = Order.objects.filter(restaurant=restaurant).count()
+    pending_orders = Order.objects.filter(restaurant=restaurant, status='pending').count()
+    todays_orders = Order.objects.filter(restaurant=restaurant, created_at__date=today).count()
+    
+    todays_revenue = Order.objects.filter(
+        restaurant=restaurant, 
+        created_at__date=today,
+        status__in=['confirmed', 'preparing', 'ready', 'served']
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    total_tables = Table.objects.filter(restaurant=restaurant).count()
+    total_menu_items = MenuItem.objects.filter(restaurant=restaurant).count()
+    
+    # Get recent orders
+    recent_orders = Order.objects.filter(restaurant=restaurant).order_by('-created_at')[:5]
+    
+    data = {
+        'total_orders': total_orders,
+        'pending_orders': pending_orders,
+        'todays_orders': todays_orders,
+        'todays_revenue': todays_revenue,
+        'total_tables': total_tables,
+        'total_menu_items': total_menu_items,
+        'recent_orders': OrderSerializer(recent_orders, many=True, context={'request': request}).data
+    }
+    
+    return Response(data) 
