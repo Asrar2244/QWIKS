@@ -8,6 +8,7 @@ from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import timedelta
 from django.shortcuts import get_object_or_404
+from django.db import models
 
 from .models import RestaurantUser, Restaurant, Table, Category, MenuItem, Order, OrderItem
 from .serializers import (
@@ -244,18 +245,21 @@ def public_menu_view(request, slug, table_id):
         restaurant = Restaurant.objects.get(slug=slug)
         table = Table.objects.get(id=table_id, restaurant=restaurant, is_active=True)
         
-        # Get categories and menu items
-        categories = Category.objects.filter(restaurant=restaurant, is_active=True).order_by('order', 'name')
-        menu_items = MenuItem.objects.filter(
+        # Get categories with prefetched, filtered, and ordered menu items
+        categories = Category.objects.filter(
             restaurant=restaurant, 
-            is_available=True
-        ).order_by('category__order', 'order', 'name')
-        
+            is_active=True
+        ).prefetch_related(
+            models.Prefetch(
+                'items',
+                queryset=MenuItem.objects.filter(is_available=True).order_by('order', 'name')
+            )
+        ).order_by('order', 'name')
+
         data = {
             'restaurant': RestaurantBrandingSerializer(restaurant, context={'request': request}).data,
             'table': TableSerializer(table, context={'request': request}).data,
             'categories': CategorySerializer(categories, many=True, context={'request': request}).data,
-            'menu_items': MenuItemPublicSerializer(menu_items, many=True, context={'request': request}).data
         }
         
         return Response(data)

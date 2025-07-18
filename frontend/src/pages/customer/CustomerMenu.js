@@ -136,11 +136,11 @@ const CustomerMenu = () => {
     setOrderLoading(true);
     try {
       const orderData = {
-        table: parseInt(tableId), // Ensure tableId is an integer, not string
+        table_id: parseInt(tableId, 10), // Ensure tableId is an integer
         items: cart,
         customer_name: customerInfo.customer_name,
         customer_phone: customerInfo.customer_phone,
-        notes: customerInfo.special_instructions || '' // Fix undefined notes
+        notes: customerInfo.special_instructions || ''
       };
 
       console.log('Sending order data:', orderData); // Debug log

@@ -127,12 +127,32 @@ class TableSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class MenuItemPublicSerializer(serializers.ModelSerializer):
+    """Public serializer for customer menu view"""
+    image_url = serializers.SerializerMethodField()
+    category_name = serializers.CharField(source='category.name', read_only=True)
+
+    class Meta:
+        model = MenuItem
+        fields = ('id', 'name', 'description', 'price', 'image_url', 'category', 'category_name', 
+                 'is_vegetarian', 'is_vegan', 'is_spicy', 'preparation_time', 'is_available')
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+
 class CategorySerializer(serializers.ModelSerializer):
+    items = MenuItemPublicSerializer(many=True, read_only=True)
     items_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ('id', 'name', 'description', 'order', 'is_active', 'items_count', 'items', 'created_at', 'updated_at')
         read_only_fields = ('restaurant', 'created_at', 'updated_at')
 
     def get_items_count(self, obj):
@@ -175,25 +195,6 @@ class MenuItemSerializer(serializers.ModelSerializer):
             if value.restaurant != request.user.restaurant:
                 raise serializers.ValidationError("Category must belong to your restaurant")
         return value
-
-
-class MenuItemPublicSerializer(serializers.ModelSerializer):
-    """Public serializer for customer menu view"""
-    image_url = serializers.SerializerMethodField()
-    category_name = serializers.CharField(source='category.name', read_only=True)
-
-    class Meta:
-        model = MenuItem
-        fields = ('id', 'name', 'description', 'price', 'image_url', 'category', 'category_name', 
-                 'is_vegetarian', 'is_vegan', 'is_spicy', 'preparation_time')
-
-    def get_image_url(self, obj):
-        if obj.image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
-        return None
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
