@@ -78,11 +78,28 @@ const ItemModal = ({
   setFormData,
   categories,
   isEditing,
+  imageError,
+  setImageError,
+  imagePreview,
+  setImagePreview,
 }) => {
   if (!isOpen) return null;
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, image: e.target.files[0] });
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ ...formData, image: file });
+      setImageError(''); // Clear error on new file selection
+      
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -91,6 +108,16 @@ const ItemModal = ({
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
     });
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    // Validate image only on create, not on edit
+    if (!isEditing && !formData.image) {
+      setImageError('An image is required.');
+      return;
+    }
+    onSubmit(e);
   };
 
   return (
@@ -109,7 +136,7 @@ const ItemModal = ({
             </div>
           )}
           
-          <form onSubmit={onSubmit} className="space-y-3">
+          <form onSubmit={handleFormSubmit} className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
@@ -173,6 +200,13 @@ const ItemModal = ({
                 onChange={handleFileChange}
                 className="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-primary file:text-white hover:file:bg-secondary"
               />
+              {imageError && <p className="text-red-500 text-xs mt-1">{imageError}</p>}
+              
+              {imagePreview && (
+                <div className="mt-2">
+                  <img src={imagePreview} alt="Preview" className="w-24 h-24 object-cover rounded-md" />
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -279,6 +313,8 @@ const MenuManagement = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [vegFilter, setVegFilter] = useState('all'); // 'all', 'veg', 'non-veg'
+  const [imageError, setImageError] = useState('');
+  const [imagePreview, setImagePreview] = useState(null);
 
   const [categoryForm, setCategoryForm] = useState({
     name: '',
@@ -385,6 +421,8 @@ const MenuManagement = () => {
       preparation_time: 15,
       order: 0
     });
+    setImageError('');
+    setImagePreview(null);
   };
 
   const openEditCategory = (category) => {
@@ -412,6 +450,10 @@ const MenuManagement = () => {
       preparation_time: item.preparation_time,
       order: item.order
     });
+    // If the item has an existing image, show it as the preview
+    if (item.image_url) {
+      setImagePreview(item.image_url);
+    }
     setShowItemModal(true);
   };
 
@@ -795,6 +837,10 @@ const MenuManagement = () => {
         setFormData={setItemForm}
         categories={categories}
         isEditing={!!editingItem}
+        imageError={imageError}
+        setImageError={setImageError}
+        imagePreview={imagePreview}
+        setImagePreview={setImagePreview}
       />
     </div>
   );

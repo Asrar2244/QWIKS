@@ -252,7 +252,7 @@ def public_menu_view(request, slug, table_id):
         ).prefetch_related(
             models.Prefetch(
                 'items',
-                queryset=MenuItem.objects.filter(is_available=True).order_by('order', 'name')
+                queryset=MenuItem.objects.order_by('order', 'name')
             )
         ).order_by('order', 'name')
 

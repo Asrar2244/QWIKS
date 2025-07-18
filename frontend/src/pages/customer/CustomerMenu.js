@@ -334,103 +334,121 @@ const CustomerMenu = () => {
 
   const filteredItems = getFilteredItems();
 
-  const MenuItemCard = ({ item }) => (
-    <div className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 hover:border-gray-200">
-      {item.image_url && (
-        <div className="relative overflow-hidden">
-          <img 
-            src={item.image_url} 
-            alt={item.name}
-            className="w-full h-32 sm:h-36 object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/30 transition-all duration-300"></div>
-          {!item.is_available && (
-            <div className="absolute inset-0 bg-gray-900/50 flex items-center justify-center">
-              <span className="bg-red-500 text-white px-2 py-1 rounded-full font-semibold text-xs">
-                Unavailable
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-      
-      <div className="p-3 sm:p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex-1">
-            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">
-              {item.name}
-            </h3>
-            <div className="flex items-center space-x-1 mb-1">
-              {item.is_vegetarian && (
-                <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  🌱
+  const MenuItemCard = ({ item }) => {
+    const cartItem = cart.find(cartItem => cartItem.menu_item === item.id);
+    const quantity = cartItem ? cartItem.quantity : 0;
+
+    return (
+      <div className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 hover:border-gray-200">
+        {item.image_url && (
+          <div className="relative overflow-hidden">
+            <img 
+              src={item.image_url} 
+              alt={item.name}
+              className={`w-full h-32 sm:h-36 object-cover group-hover:scale-105 transition-transform duration-300 ${!item.is_available ? 'grayscale' : ''}`}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/30 transition-all duration-300"></div>
+            {!item.is_available && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <span className="bg-white text-gray-800 px-3 py-1 rounded-full font-bold text-sm shadow-md">
+                  Unavailable
                 </span>
-              )}
-              {item.is_vegan && (
-                <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  🌿
-                </span>
-              )}
-              {item.is_spicy && (
-                <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                  🌶️
-                </span>
-              )}
-            </div>
-            <div className="text-lg sm:text-xl font-bold text-primary">₹{item.price}</div>
+              </div>
+            )}
           </div>
-        </div>
-        
-        {item.description && (
-          <p className="text-gray-600 text-xs sm:text-sm mb-3 leading-relaxed line-clamp-2">{item.description}</p>
         )}
         
-        <div className="flex items-center justify-between">
-          {item.preparation_time && (
-            <div className="flex items-center text-gray-500 text-xs">
-              <span className="mr-1">⏱️</span>
-              <span>{item.preparation_time} mins</span>
+        <div className={`p-3 sm:p-4 ${!item.is_available ? 'opacity-60' : ''}`}>
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex-1">
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">
+                {item.name}
+              </h3>
+              <div className="flex items-center space-x-1 mb-1">
+                {item.is_vegetarian && (
+                  <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    🌱
+                  </span>
+                )}
+                {item.is_vegan && (
+                  <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    🌿
+                  </span>
+                )}
+                {item.is_spicy && (
+                  <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    🌶️
+                  </span>
+                )}
+              </div>
+              <div className="text-lg sm:text-xl font-bold text-primary">₹{item.price}</div>
             </div>
+          </div>
+          
+          {item.description && (
+            <p className="text-gray-600 text-xs sm:text-sm mb-3 leading-relaxed line-clamp-2">{item.description}</p>
           )}
           
-          <button
-            onClick={(e) => addToCart(item, e)}
-            disabled={!item.is_available}
-            className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 ${
-              item.is_available
-                ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            {item.is_available ? 'Add to Cart' : 'Unavailable'}
-          </button>
+          <div className="flex items-center justify-between">
+            {item.preparation_time && (
+              <div className="flex items-center text-gray-500 text-xs">
+                <span className="mr-1">⏱️</span>
+                <span>{item.preparation_time} min</span>
+              </div>
+            )}
+            {quantity > 0 ? (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => updateCartQuantity(item.id, quantity - 1)}
+                  className="w-7 h-7 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200 transition-colors duration-200 text-base"
+                >
+                  -
+                </button>
+                <span className="w-6 text-center font-bold text-primary text-sm">{quantity}</span>
+                <button
+                  onClick={() => updateCartQuantity(item.id, quantity + 1)}
+                  className="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-200 transition-colors duration-200 text-base"
+                >
+                  +
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={(e) => addToCart(item, e)}
+                disabled={!item.is_available}
+                className="px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-primary rounded-full hover:bg-secondary disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                Add
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-
-  const CategoryButton = ({ category }) => (
-    <button
-      onClick={() => {
-        setSelectedCategory(category.id);
-        setShowCategoryMenu(false);
-      }}
-      className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
-        selectedCategory === category.id
-          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300'
-      }`}
-    >
-      {category.name}
-      {category.items?.length > 0 && (
-        <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
-          selectedCategory === category.id ? 'bg-white/20' : 'bg-gray-100'
-        }`}>
-          {category.items.length}
-        </span>
-      )}
-    </button>
-  );
+    );
+  };
+  
+    const CategoryButton = ({ category }) => (
+      <button
+        onClick={() => {
+          setSelectedCategory(category.id);
+          setShowCategoryMenu(false);
+        }}
+        className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
+          selectedCategory === category.id
+            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300'
+        }`}
+      >
+        {category.name}
+        {category.items?.length > 0 && (
+          <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+            selectedCategory === category.id ? 'bg-white/20' : 'bg-gray-100'
+          }`}>
+            {category.items.length}
+          </span>
+        )}
+      </button>
+    );
 
   const CategoryMenuModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 theme-modal-overlay">
