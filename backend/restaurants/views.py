@@ -274,14 +274,23 @@ def public_menu_view(request, slug, table_id):
 @api_view(['GET'])
 @permission_classes([RestaurantOwnerPermission])
 def dashboard_stats_view(request):
-    """Get dashboard statistics"""
+    """Get comprehensive dashboard statistics"""
     restaurant = request.user.restaurant
     today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
     
-    # Get statistics
+    # Basic counts
     total_orders = Order.objects.filter(restaurant=restaurant).count()
     pending_orders = Order.objects.filter(restaurant=restaurant, status='pending').count()
     todays_orders = Order.objects.filter(restaurant=restaurant, created_at__date=today).count()
+    weeks_orders = Order.objects.filter(restaurant=restaurant, created_at__date__gte=week_ago).count()
+    
+    # Revenue calculations
+    total_revenue = Order.objects.filter(
+        restaurant=restaurant,
+        status__in=['confirmed', 'preparing', 'ready', 'served']
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
     
     todays_revenue = Order.objects.filter(
         restaurant=restaurant, 
@@ -289,19 +298,79 @@ def dashboard_stats_view(request):
         status__in=['confirmed', 'preparing', 'ready', 'served']
     ).aggregate(total=Sum('total_amount'))['total'] or 0
     
-    total_tables = Table.objects.filter(restaurant=restaurant).count()
-    total_menu_items = MenuItem.objects.filter(restaurant=restaurant).count()
+    weeks_revenue = Order.objects.filter(
+        restaurant=restaurant,
+        created_at__date__gte=week_ago,
+        status__in=['confirmed', 'preparing', 'ready', 'served']
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
     
-    # Get recent orders
+    # Table statistics
+    total_tables = Table.objects.filter(restaurant=restaurant).count()
+    active_tables = Table.objects.filter(restaurant=restaurant, is_active=True).count()
+    
+    # Menu statistics
+    total_menu_items = MenuItem.objects.filter(restaurant=restaurant).count()
+    available_menu_items = MenuItem.objects.filter(restaurant=restaurant, is_available=True).count()
+    
+    # Average order value
+    avg_order_value = 0
+    if total_orders > 0:
+        avg_order_value = total_revenue / total_orders
+    
+    # Recent orders for activity feed
     recent_orders = Order.objects.filter(restaurant=restaurant).order_by('-created_at')[:5]
     
+    # Restaurant info
+    restaurant_data = {
+        'name': restaurant.name,
+        'slug': restaurant.slug,
+        'description': restaurant.description,
+        'phone': restaurant.phone,
+        'email': restaurant.email,
+        'address': restaurant.address,
+    }
+    
+    # Calculate trends (simplified - you can make this more sophisticated)
+    yesterday = today - timedelta(days=1)
+    yesterdays_orders = Order.objects.filter(restaurant=restaurant, created_at__date=yesterday).count()
+    yesterdays_revenue = Order.objects.filter(
+        restaurant=restaurant,
+        created_at__date=yesterday,
+        status__in=['confirmed', 'preparing', 'ready', 'served']
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Simple trend calculation
+    order_trend = 0
+    revenue_trend = 0
+    if yesterdays_orders > 0:
+        order_trend = ((todays_orders - yesterdays_orders) / yesterdays_orders) * 100
+    if yesterdays_revenue > 0:
+        revenue_trend = ((todays_revenue - yesterdays_revenue) / yesterdays_revenue) * 100
+    
     data = {
-        'total_orders': total_orders,
-        'pending_orders': pending_orders,
-        'todays_orders': todays_orders,
-        'todays_revenue': todays_revenue,
-        'total_tables': total_tables,
-        'total_menu_items': total_menu_items,
+        'restaurant': restaurant_data,
+        'orders': {
+            'total': total_orders,
+            'pending': pending_orders,
+            'today': todays_orders,
+            'week': weeks_orders,
+            'trend': round(order_trend, 1)
+        },
+        'revenue': {
+            'total': float(total_revenue),
+            'today': float(todays_revenue),
+            'week': float(weeks_revenue),
+            'trend': round(revenue_trend, 1)
+        },
+        'tables': {
+            'total': total_tables,
+            'active': active_tables
+        },
+        'menu_items': {
+            'total': total_menu_items,
+            'available': available_menu_items
+        },
+        'avg_order_value': float(avg_order_value),
         'recent_orders': OrderSerializer(recent_orders, many=True, context={'request': request}).data
     }
     

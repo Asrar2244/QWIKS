@@ -17,6 +17,9 @@ const OrdersManagement = () => {
     notes: '',
     items: []
   });
+  const [lastUpdateTime, setLastUpdateTime] = useState(new Date());
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [newOrderIds, setNewOrderIds] = useState(new Set());
   
   // New state for Add Item modal
   const [showAddItemModal, setShowAddItemModal] = useState(false);
@@ -34,16 +37,54 @@ const OrdersManagement = () => {
     { value: 'cancelled', label: 'Cancelled' }
   ];
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (isBackgroundUpdate = false) => {
     try {
+      if (isBackgroundUpdate) {
+        setIsUpdating(true);
+      }
       const response = await ordersAPI.getAll(statusFilter === 'all' ? null : statusFilter);
-      setOrders(response.data.results || response.data);
+      const newOrders = response.data.results || response.data;
+      
+      // Check if there are new orders
+      if (isBackgroundUpdate && orders.length > 0) {
+        const currentOrderIds = new Set(orders.map(order => order.id));
+        const newOrderIdsFound = newOrders
+          .filter(order => !currentOrderIds.has(order.id))
+          .map(order => order.id);
+        
+        if (newOrderIdsFound.length > 0) {
+          console.log('New orders detected:', newOrderIdsFound);
+          setNewOrderIds(new Set(newOrderIdsFound));
+          
+          // Clear the new order highlight after 5 seconds
+          setTimeout(() => {
+            setNewOrderIds(new Set());
+          }, 5000);
+        }
+      }
+      
+      setOrders(newOrders);
+      setLastUpdateTime(new Date());
     } catch (error) {
       setError(handleAPIError(error));
     } finally {
       setLoading(false);
+      setIsUpdating(false);
     }
-  }, [statusFilter]);
+  }, [statusFilter, orders.length]);
+
+  // Real-time order updates
+  useEffect(() => {
+    // Initial fetch
+    fetchOrders();
+    
+    // Set up polling every 10 seconds for real-time updates
+    const interval = setInterval(() => {
+      fetchOrders(true);
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
 
   const fetchRestaurant = useCallback(async () => {
     try {
@@ -56,9 +97,8 @@ const OrdersManagement = () => {
   }, []);
 
   useEffect(() => {
-    fetchOrders();
     fetchRestaurant();
-  }, [fetchOrders, fetchRestaurant]);
+  }, [fetchRestaurant]);
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
@@ -799,13 +839,23 @@ const OrdersManagement = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Orders Management</h1>
-          <p className="text-sm text-gray-600">Track and manage customer orders</p>
+          <p className="text-sm text-gray-600">
+            Track and manage customer orders
+            {lastUpdateTime && (
+              <span className="ml-2 text-xs text-gray-500">
+                • Last updated: {lastUpdateTime.toLocaleTimeString()}
+                {isUpdating && <span className="ml-1 animate-pulse">🔄</span>}
+              </span>
+            )}
+          </p>
         </div>
         <button
-          onClick={fetchOrders}
-          className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
+          onClick={() => fetchOrders(false)}
+          disabled={isUpdating}
+          className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 flex items-center space-x-1"
         >
-          🔄 Refresh
+          <span className={isUpdating ? 'animate-spin' : ''}>🔄</span>
+          <span>Refresh</span>
         </button>
       </div>
 
@@ -859,10 +909,10 @@ const OrdersManagement = () => {
                 <tr>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Table</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Status & Actions</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Edit & Print</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -870,7 +920,14 @@ const OrdersManagement = () => {
                   const nextStatus = getNextStatus(order.status);
                   
                   return (
-                    <tr key={order.id} className="hover:bg-gray-50">
+                    <tr 
+                      key={order.id} 
+                      className={`hover:bg-gray-50 transition-all duration-500 ${
+                        newOrderIds.has(order.id) 
+                          ? 'bg-green-50 border-l-4 border-l-green-500 animate-pulse' 
+                          : ''
+                      }`}
+                    >
                       <td className="px-4 py-3">
                         <div>
                           <div className="text-sm font-medium text-gray-900">#{order.order_number}</div>
@@ -888,10 +945,31 @@ const OrdersManagement = () => {
                       <td className="px-4 py-3 text-sm text-gray-900">
                         Table {order.table_number}
                       </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </span>
+                      <td className="px-4 py-3 w-32">
+                        <div className="flex flex-col space-y-1">
+                          {nextStatus ? (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, nextStatus)}
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)} hover:opacity-80 transition-all duration-200 cursor-pointer`}
+                              title={`Click to change to ${nextStatus}`}
+                            >
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)} → {getNextStatusLabel(order.status)}
+                            </button>
+                          ) : (
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </span>
+                          )}
+                          {order.status === 'pending' && (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                              className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                              title="Cancel order"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">
                         ₹{order.total_amount}
@@ -904,34 +982,18 @@ const OrdersManagement = () => {
                         <div className="flex flex-wrap gap-1">
                           <button
                             onClick={() => openEditModal(order)}
-                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors duration-200"
                             title="Edit Order"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => printBill(order)}
-                            className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                            className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-200"
                             title="Print Bill"
                           >
                             Print
                           </button>
-                          {nextStatus && (
-                            <button
-                              onClick={() => updateOrderStatus(order.id, nextStatus)}
-                              className="px-2 py-1 text-xs bg-primary text-white rounded hover:bg-secondary"
-                            >
-                              {getNextStatusLabel(order.status)}
-                            </button>
-                          )}
-                          {order.status === 'pending' && (
-                            <button
-                              onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                              className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
-                            >
-                              Cancel
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>

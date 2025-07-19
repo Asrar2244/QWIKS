@@ -3,16 +3,26 @@ import { Link } from 'react-router-dom';
 import { dashboardAPI, handleAPIError } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 
+
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [lastUpdated, setLastUpdated] = useState(new Date());
   const { user, token } = useAuth();
+
 
   useEffect(() => {
     // Only fetch stats when we have both user and token
     if (user && token) {
       fetchStats();
+      
+      // Set up auto-refresh every 30 seconds
+      const interval = setInterval(() => {
+        fetchStats();
+      }, 30000);
+      
+      return () => clearInterval(interval);
     }
   }, [user, token]);
 
@@ -30,10 +40,12 @@ const AdminDashboard = () => {
     };
   }, [stats?.restaurant?.name]);
 
-  const fetchStats = async () => {
+  const fetchStats = async (showSuccessMessage = false) => {
     try {
       const response = await dashboardAPI.getStats();
       setStats(response.data);
+      setLastUpdated(new Date());
+      setError(''); // Clear any previous errors
     } catch (error) {
       setError(handleAPIError(error));
     } finally {
@@ -174,10 +186,10 @@ const AdminDashboard = () => {
   }
 
   const activityData = [
-    { label: "Today's Orders", value: stats?.orders?.today || 0, change: 12 },
-    { label: "Today's Revenue", value: `₹${stats?.revenue?.today?.toLocaleString('en-IN') || '0'}`, change: 15 },
-    { label: "This Week's Orders", value: stats?.orders?.week || 0, change: 8 },
-    { label: "This Week's Revenue", value: `₹${stats?.revenue?.week?.toLocaleString('en-IN') || '0'}`, change: 10 },
+    { label: "Today's Orders", value: stats?.orders?.today || 0, change: stats?.orders?.trend || 0 },
+    { label: "Today's Revenue", value: `₹${stats?.revenue?.today?.toLocaleString('en-IN') || '0'}`, change: stats?.revenue?.trend || 0 },
+    { label: "This Week's Orders", value: stats?.orders?.week || 0, change: 0 },
+    { label: "This Week's Revenue", value: `₹${stats?.revenue?.week?.toLocaleString('en-IN') || '0'}`, change: 0 },
     { label: "Available Items", value: stats?.menu_items?.available || 0, change: 0 },
     { label: "Active Tables", value: stats?.tables?.active || 0, change: 0 }
   ];
@@ -197,8 +209,16 @@ const AdminDashboard = () => {
             <div className="hidden md:flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm text-gray-500">Last updated</p>
-                <p className="text-sm font-semibold text-gray-900">{new Date().toLocaleTimeString()}</p>
+                <p className="text-sm font-semibold text-gray-900">{lastUpdated.toLocaleTimeString()}</p>
               </div>
+              <button
+                onClick={() => fetchStats(true)}
+                disabled={loading}
+                className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full text-white hover:shadow-lg transition-all duration-200 disabled:opacity-50"
+                title="Refresh dashboard"
+              >
+                <span className={`text-xl ${loading ? 'animate-spin' : ''}`}>🔄</span>
+              </button>
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-xl">🏪</span>
               </div>
@@ -214,8 +234,6 @@ const AdminDashboard = () => {
           value={stats?.tables?.total || 0}
           icon="🪑"
           gradient="bg-gradient-to-r from-blue-500 to-blue-600"
-          trend="up"
-          trendValue="12%"
           link="/admin/tables"
         />
         <StatCard
@@ -223,8 +241,6 @@ const AdminDashboard = () => {
           value={stats?.tables?.active || 0}
           icon="✅"
           gradient="bg-gradient-to-r from-green-500 to-green-600"
-          trend="up"
-          trendValue="8%"
           link="/admin/tables"
         />
         <StatCard
@@ -232,8 +248,8 @@ const AdminDashboard = () => {
           value={`₹${stats?.revenue?.total?.toLocaleString('en-IN') || '0'}`}
           icon="💰"
           gradient="bg-gradient-to-r from-emerald-500 to-emerald-600"
-          trend="up"
-          trendValue="22%"
+          trend={stats?.revenue?.trend > 0 ? "up" : "down"}
+          trendValue={`${Math.abs(stats?.revenue?.trend || 0)}%`}
           link="/admin/orders"
         />
         <StatCard
@@ -241,8 +257,8 @@ const AdminDashboard = () => {
           value={stats?.orders?.pending || 0}
           icon="⏰"
           gradient="bg-gradient-to-r from-amber-500 to-orange-500"
-          trend="down"
-          trendValue="3%"
+          trend={stats?.orders?.trend > 0 ? "up" : "down"}
+          trendValue={`${Math.abs(stats?.orders?.trend || 0)}%`}
           link="/admin/orders"
         />
       </div>
@@ -258,45 +274,75 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Quick Tips */}
+        {/* Dynamic Insights */}
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
           <div className="flex items-center mb-6">
             <div className="p-2 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg mr-3">
               <span className="text-white text-lg">💡</span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Pro Tips</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Smart Insights</h3>
           </div>
           
           <div className="space-y-4">
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
-              <div className="flex items-start">
-                <span className="text-blue-500 mr-3 text-lg">📸</span>
-                <div>
-                  <p className="font-medium text-gray-900">Add High-Quality Images</p>
-                  <p className="text-sm text-gray-600 mt-1">Menu items with images get 40% more orders</p>
+            {stats?.orders?.pending > 0 && (
+              <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+                <div className="flex items-start">
+                  <span className="text-amber-500 mr-3 text-lg">⏰</span>
+                  <div>
+                    <p className="font-medium text-gray-900">Pending Orders Alert</p>
+                    <p className="text-sm text-gray-600 mt-1">You have {stats.orders.pending} orders waiting for confirmation</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             
-            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
-              <div className="flex items-start">
-                <span className="text-green-500 mr-3 text-lg">📱</span>
-                <div>
-                  <p className="font-medium text-gray-900">QR Code Magic</p>
-                  <p className="text-sm text-gray-600 mt-1">Each table gets a unique QR code automatically</p>
+            {stats?.menu_items?.total === 0 && (
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+                <div className="flex items-start">
+                  <span className="text-blue-500 mr-3 text-lg">🍽️</span>
+                  <div>
+                    <p className="font-medium text-gray-900">Add Your First Menu Item</p>
+                    <p className="text-sm text-gray-600 mt-1">Start building your digital menu to attract customers</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             
-            <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
-              <div className="flex items-start">
-                <span className="text-purple-500 mr-3 text-lg">🎨</span>
-                <div>
-                  <p className="font-medium text-gray-900">Custom Branding</p>
-                  <p className="text-sm text-gray-600 mt-1">Match your restaurant's unique style</p>
+            {stats?.tables?.total === 0 && (
+              <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                <div className="flex items-start">
+                  <span className="text-green-500 mr-3 text-lg">🪑</span>
+                  <div>
+                    <p className="font-medium text-gray-900">Create Your First Table</p>
+                    <p className="text-sm text-gray-600 mt-1">Add tables to generate QR codes for customer ordering</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+            
+            {stats?.revenue?.today > 0 && (
+              <div className="p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100">
+                <div className="flex items-start">
+                  <span className="text-emerald-500 mr-3 text-lg">💰</span>
+                  <div>
+                    <p className="font-medium text-gray-900">Today's Revenue</p>
+                    <p className="text-sm text-gray-600 mt-1">Great! You've earned ₹{stats.revenue.today.toLocaleString('en-IN')} today</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {stats?.orders?.total === 0 && (
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                <div className="flex items-start">
+                  <span className="text-purple-500 mr-3 text-lg">🎯</span>
+                  <div>
+                    <p className="font-medium text-gray-900">Ready for Orders</p>
+                    <p className="text-sm text-gray-600 mt-1">Your restaurant is set up! Customers can start placing orders</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -322,7 +368,7 @@ const AdminDashboard = () => {
             icon="🍽️"
             link="/admin/menu"
             gradient="bg-gradient-to-r from-purple-500 to-purple-600"
-            badge={stats?.menu_items?.total === 0 ? "Start here" : null}
+            badge={stats?.menu_items?.total === 0 ? "Start here" : `${stats?.menu_items?.available}/${stats?.menu_items?.total} available`}
           />
           <QuickAction
             title="Manage Orders"
@@ -330,13 +376,13 @@ const AdminDashboard = () => {
             icon="📦"
             link="/admin/orders"
             gradient="bg-gradient-to-r from-amber-500 to-orange-500"
-            badge={stats?.orders?.pending > 0 ? stats.orders.pending : null}
+            badge={stats?.orders?.pending > 0 ? `${stats.orders.pending} pending` : null}
           />
         </div>
       </div>
 
       {/* Performance Overview */}
-      <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+      <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-xl font-semibold text-gray-900">Performance Overview</h3>
@@ -364,12 +410,56 @@ const AdminDashboard = () => {
           </div>
           
           <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-            <div className="text-3xl font-bold text-purple-600 mb-2">₹{stats?.avg_order_value?.toFixed(0) || '0'}</div>
+            <div className="text-3xl font-bold text-purple-600 mb-2">₹{Math.round(stats?.avg_order_value || 0)}</div>
             <div className="text-sm font-medium text-purple-800">Avg Order Value</div>
             <div className="text-xs text-purple-600 mt-1">Per order</div>
           </div>
         </div>
       </div>
+
+      {/* Recent Orders */}
+      {stats?.recent_orders && stats.recent_orders.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Recent Orders</h3>
+              <p className="text-gray-600">Latest customer orders</p>
+            </div>
+            <Link 
+              to="/admin/orders" 
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-shadow duration-200"
+            >
+              View All Orders
+            </Link>
+          </div>
+          
+          <div className="space-y-4">
+            {stats.recent_orders.map((order) => (
+              <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-3 h-3 rounded-full ${
+                    order.status === 'pending' ? 'bg-yellow-500' :
+                    order.status === 'confirmed' ? 'bg-blue-500' :
+                    order.status === 'preparing' ? 'bg-orange-500' :
+                    order.status === 'ready' ? 'bg-green-500' :
+                    'bg-gray-500'
+                  }`}></div>
+                  <div>
+                    <p className="font-medium text-gray-900">Order #{order.id}</p>
+                    <p className="text-sm text-gray-600">
+                      {order.customer_name} • Table {order.table?.table_number || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-gray-900">₹{order.total_amount}</p>
+                  <p className="text-sm text-gray-600 capitalize">{order.status}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
