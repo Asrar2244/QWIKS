@@ -19,10 +19,27 @@ const CartModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 theme-modal-overlay">
-      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-hidden shadow-2xl theme-modal">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black bg-opacity-50 theme-modal-overlay">
+      {/* Bottom Sheet */}
+      <div
+        className="w-full max-w-lg mx-auto bg-white rounded-t-2xl shadow-2xl theme-modal
+          transition-transform duration-300
+          animate-slideup
+          max-h-[90vh] overflow-hidden
+          relative"
+        style={{
+          // For mobile, make it full width, for desktop, max-w-lg
+          width: '100%',
+          borderTopLeftRadius: '1.5rem',
+          borderTopRightRadius: '1.5rem',
+        }}
+      >
+        {/* Drag Handle */}
+        <div className="flex justify-center py-2">
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+        </div>
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 sm:p-6">
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 sm:p-6 rounded-t-2xl">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold">Your Order</h2>
@@ -36,8 +53,7 @@ const CartModal = ({
             </button>
           </div>
         </div>
-        
-        <div className="p-4 sm:p-6 max-h-96 overflow-y-auto theme-modal-content">
+        <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto theme-modal-content">
           {cartItems.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-4">🛒</div>
@@ -339,63 +355,63 @@ const CustomerMenu = () => {
     const quantity = cartItem ? cartItem.quantity : 0;
 
     return (
-      <div className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 hover:border-gray-200">
-        {item.image_url && (
-          <div className="relative overflow-hidden">
-            <img 
-              src={item.image_url} 
-              alt={item.name}
+    <div className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 hover:border-gray-200">
+      {item.image_url && (
+        <div className="relative overflow-hidden">
+          <img 
+            src={item.image_url} 
+            alt={item.name}
               className={`w-full h-32 sm:h-36 object-cover group-hover:scale-105 transition-transform duration-300 ${!item.is_available ? 'grayscale' : ''}`}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/30 transition-all duration-300"></div>
-            {!item.is_available && (
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/30 transition-all duration-300"></div>
+          {!item.is_available && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                 <span className="bg-white text-gray-800 px-3 py-1 rounded-full font-bold text-sm shadow-md">
-                  Unavailable
+                Unavailable
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+      
+        <div className={`p-3 sm:p-4 ${!item.is_available ? 'opacity-60' : ''}`}>
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex-1">
+            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">
+              {item.name}
+            </h3>
+            <div className="flex items-center space-x-1 mb-1">
+              {item.is_vegetarian && (
+                <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  🌱
                 </span>
-              </div>
-            )}
+              )}
+              {item.is_vegan && (
+                <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  🌿
+                </span>
+              )}
+              {item.is_spicy && (
+                <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  🌶️
+                </span>
+              )}
+            </div>
+            <div className="text-lg sm:text-xl font-bold text-primary">₹{item.price}</div>
           </div>
+        </div>
+        
+        {item.description && (
+          <p className="text-gray-600 text-xs sm:text-sm mb-3 leading-relaxed line-clamp-2">{item.description}</p>
         )}
         
-        <div className={`p-3 sm:p-4 ${!item.is_available ? 'opacity-60' : ''}`}>
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex-1">
-              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">
-                {item.name}
-              </h3>
-              <div className="flex items-center space-x-1 mb-1">
-                {item.is_vegetarian && (
-                  <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    🌱
-                  </span>
-                )}
-                {item.is_vegan && (
-                  <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    🌿
-                  </span>
-                )}
-                {item.is_spicy && (
-                  <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    🌶️
-                  </span>
-                )}
-              </div>
-              <div className="text-lg sm:text-xl font-bold text-primary">₹{item.price}</div>
-            </div>
-          </div>
-          
-          {item.description && (
-            <p className="text-gray-600 text-xs sm:text-sm mb-3 leading-relaxed line-clamp-2">{item.description}</p>
-          )}
-          
-          <div className="flex items-center justify-between">
-            {item.preparation_time && (
-              <div className="flex items-center text-gray-500 text-xs">
-                <span className="mr-1">⏱️</span>
+        <div className="flex items-center justify-between">
+          {item.preparation_time && (
+            <div className="flex items-center text-gray-500 text-xs">
+              <span className="mr-1">⏱️</span>
                 <span>{item.preparation_time} min</span>
-              </div>
-            )}
+            </div>
+          )}
             {quantity > 0 ? (
               <div className="flex items-center space-x-2">
                 <button
@@ -413,42 +429,42 @@ const CustomerMenu = () => {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={(e) => addToCart(item, e)}
-                disabled={!item.is_available}
+          <button
+            onClick={(e) => addToCart(item, e)}
+            disabled={!item.is_available}
                 className="px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-primary rounded-full hover:bg-secondary disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 Add
-              </button>
+          </button>
             )}
-          </div>
         </div>
       </div>
-    );
+    </div>
+  );
   };
-  
-    const CategoryButton = ({ category }) => (
-      <button
-        onClick={() => {
-          setSelectedCategory(category.id);
-          setShowCategoryMenu(false);
-        }}
-        className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
-          selectedCategory === category.id
-            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300'
-        }`}
-      >
-        {category.name}
-        {category.items?.length > 0 && (
-          <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
-            selectedCategory === category.id ? 'bg-white/20' : 'bg-gray-100'
-          }`}>
-            {category.items.length}
-          </span>
-        )}
-      </button>
-    );
+
+  const CategoryButton = ({ category }) => (
+    <button
+      onClick={() => {
+        setSelectedCategory(category.id);
+        setShowCategoryMenu(false);
+      }}
+      className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
+        selectedCategory === category.id
+          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      {category.name}
+      {category.items?.length > 0 && (
+        <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+          selectedCategory === category.id ? 'bg-white/20' : 'bg-gray-100'
+        }`}>
+          {category.items.length}
+        </span>
+      )}
+    </button>
+  );
 
   const CategoryMenuModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 theme-modal-overlay">

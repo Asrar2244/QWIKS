@@ -27,6 +27,14 @@ const OrdersManagement = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState([]);
 
+  // 1. Add state for the print bill modal and service tax toggle
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [printOrder, setPrintOrder] = useState(null);
+  const [includeServiceTax, setIncludeServiceTax] = useState(true);
+
+  // Add state for service tax percentage
+  const [serviceTaxPercent, setServiceTaxPercent] = useState(5);
+
   const statusOptions = [
     { value: 'all', label: 'All Orders' },
     { value: 'pending', label: 'Pending' },
@@ -169,7 +177,8 @@ const OrdersManagement = () => {
   };
 
   // Print Bill Function
-  const printBill = (order) => {
+  const printBill = (order, serviceTax = true, serviceTaxPercentValue = 5) => {
+    setShowPrintModal(false);
     const printWindow = window.open('', '_blank');
     
     // Calculate tax breakdown (assuming 18% GST split as 9% CGST + 9% SGST)
@@ -179,7 +188,9 @@ const OrdersManagement = () => {
     const totalTax = subtotal - baseAmount;
     const cgst = totalTax / 2; // 9% CGST
     const sgst = totalTax / 2; // 9% SGST
-    
+    const serviceTaxAmount = serviceTax ? subtotal * (serviceTaxPercentValue / 100) : 0;
+    const grandTotal = subtotal + serviceTaxAmount;
+
     const billContent = `
       <!DOCTYPE html>
       <html>
@@ -286,12 +297,13 @@ const OrdersManagement = () => {
               <span>Total Tax:</span>
               <span>₹${totalTax.toFixed(2)}</span>
             </div>
+            ${serviceTax ? `<div class="total-row"><span>Service Tax @ ${serviceTaxPercentValue}%:</span><span>₹${serviceTaxAmount.toFixed(2)}</span></div>` : ''}
             
             <div class="solid-line"></div>
             
             <div class="total-row grand-total">
-              <span>GRAND TOTAL:</span>
-              <span>₹${order.total_amount}</span>
+              <span>Grand Total:</span>
+              <span>₹${grandTotal.toFixed(2)}</span>
             </div>
             
             <div class="total-row" style="margin-top: 5px;">
@@ -988,7 +1000,7 @@ const OrdersManagement = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => printBill(order)}
+                            onClick={() => { setPrintOrder(order); setShowPrintModal(true); setIncludeServiceTax(true); }}
                             className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-200"
                             title="Print Bill"
                           >
@@ -1061,6 +1073,52 @@ const OrdersManagement = () => {
 
       {showAddItemModal && (
         <AddItemModal />
+      )}
+
+      {showPrintModal && printOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm">
+            <h2 className="text-lg font-bold mb-4">Print Bill Options</h2>
+            <div className="flex items-center mb-4">
+              <input
+                type="checkbox"
+                id="serviceTax"
+                checked={includeServiceTax}
+                onChange={e => setIncludeServiceTax(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="serviceTax" className="text-sm">Include Service Tax</label>
+              {includeServiceTax && (
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={serviceTaxPercent}
+                  onChange={e => setServiceTaxPercent(Number(e.target.value))}
+                  className="ml-4 w-20 px-2 py-1 border rounded text-sm"
+                  style={{ width: '70px' }}
+                  disabled={!includeServiceTax}
+                />
+              )}
+              {includeServiceTax && <span className="ml-1 text-sm">%</span>}
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowPrintModal(false)}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => printBill(printOrder, includeServiceTax, serviceTaxPercent)}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Print Bill
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
