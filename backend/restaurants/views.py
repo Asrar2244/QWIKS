@@ -9,6 +9,8 @@ from django.utils import timezone
 from datetime import timedelta
 from django.shortcuts import get_object_or_404
 from django.db import models
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 from .models import RestaurantUser, Restaurant, Table, Category, MenuItem, Order, OrderItem
 from .serializers import (
@@ -129,6 +131,7 @@ class RestaurantDetailView(generics.RetrieveUpdateAPIView):
         return self.request.user.restaurant
 
 
+@cache_page(60 * 5, key_prefix='branding')
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def restaurant_branding_view(request, slug):
@@ -147,6 +150,10 @@ class TableViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Table.objects.filter(restaurant=self.request.user.restaurant)
 
+    @method_decorator(cache_page(60 * 2, key_prefix='tables'))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 # Category Views
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -156,6 +163,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         return Category.objects.filter(restaurant=self.request.user.restaurant)
+
+    @method_decorator(cache_page(60 * 2, key_prefix='categories'))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 # Menu Item Views
@@ -170,6 +181,10 @@ class MenuItemViewSet(viewsets.ModelViewSet):
         if category:
             queryset = queryset.filter(category=category)
         return queryset
+
+    @method_decorator(cache_page(60 * 2, key_prefix='menu_items'))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 # Order Views
@@ -223,6 +238,10 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer = OrderSerializer(unread_orders, many=True, context={'request': request})
         return Response(serializer.data)
 
+    @method_decorator(cache_page(30, key_prefix='orders_list'))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 # Public Order Creation
 @api_view(['POST'])
@@ -237,6 +256,7 @@ def create_order_view(request):
 
 
 # Public Menu View
+@cache_page(60 * 2, key_prefix='public_menu')
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def public_menu_view(request, slug, table_id):
@@ -271,6 +291,7 @@ def public_menu_view(request, slug, table_id):
 
 
 # Dashboard Views
+@cache_page(60, key_prefix='dashboard_stats')
 @api_view(['GET'])
 @permission_classes([RestaurantOwnerPermission])
 def dashboard_stats_view(request):
