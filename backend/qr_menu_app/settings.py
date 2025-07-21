@@ -222,26 +222,3 @@ CORS_ALLOW_ALL_ORIGINS = True  # Only for development
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB 
-
-# Redis Cache Configuration (Production Ready)
-# -------------------------------------------
-# For production, set REDIS_URL in your environment (e.g., redis://:password@host:port/1)
-# For local development, defaults to localhost
-import os
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6000/1')
-
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URL,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            # Uncomment and set password if needed:
-            # "PASSWORD": os.environ.get('REDIS_PASSWORD', None),
-        }
-    }
-}
-
-# Use Redis for session storage
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default" 
