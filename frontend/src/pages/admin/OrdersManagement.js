@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ordersAPI, menuItemsAPI, categoriesAPI, restaurantAPI, handleAPIError } from '../../utils/api';
+import * as XLSX from 'xlsx';
 
 const OrdersManagement = () => {
   const [orders, setOrders] = useState([]);
@@ -34,6 +35,10 @@ const OrdersManagement = () => {
 
   // Add state for service tax percentage
   const [serviceTaxPercent, setServiceTaxPercent] = useState(5);
+
+  // Add state for startDate and endDate
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const statusOptions = [
     { value: 'all', label: 'All Orders' },
@@ -846,6 +851,30 @@ const OrdersManagement = () => {
     );
   }
 
+  const filteredOrders = orders.filter(order => {
+    const orderDate = new Date(order.created_at).toISOString().slice(0, 10);
+    if (startDate && orderDate < startDate) return false;
+    if (endDate && orderDate > endDate) return false;
+    return true;
+  });
+
+  const exportToExcel = () => {
+    const data = filteredOrders.map(order => ({
+      'Order #': order.order_number,
+      'Table': order.table_number,
+      'Status': order.status,
+      'Total': order.total_amount,
+      'Date': new Date(order.created_at).toLocaleDateString(),
+      'Time': new Date(order.created_at).toLocaleTimeString(),
+      'Customer': order.customer_name || '',
+      'Phone': order.customer_phone || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+    XLSX.writeFile(wb, 'orders.xlsx');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -899,8 +928,23 @@ const OrdersManagement = () => {
         </div>
       </div>
 
+      {/* Date Range Filter */}
+      <div className="bg-white rounded-lg shadow p-3 flex items-center space-x-2">
+        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm" />
+        <span className="text-gray-500">to</span>
+        <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="border rounded px-2 py-1 text-sm" />
+      </div>
+
+      {/* Export to Excel Button */}
+      <button
+        onClick={exportToExcel}
+        className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 ml-2"
+      >
+        Export to Excel
+      </button>
+
       {/* Orders Table */}
-      {orders.length === 0 ? (
+      {filteredOrders.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="text-4xl mb-2">📦</div>
           <h3 className="text-lg font-medium text-gray-900 mb-1">
@@ -928,7 +972,7 @@ const OrdersManagement = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {orders.map((order) => {
+                {filteredOrders.map((order) => {
                   const nextStatus = getNextStatus(order.status);
                   
                   return (
