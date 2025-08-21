@@ -14,13 +14,16 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'));
   const [loading, setLoading] = useState(true);
 
   // Define logout first to avoid initialization issues
   const logout = useCallback(() => {
     setUser(null);
     setToken(null);
+    setRefreshToken(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     delete axios.defaults.headers.common['Authorization'];
   }, []);
 
@@ -49,17 +52,62 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token, fetchUserProfile]);
 
+  // Axios interceptor for auto-refresh
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      response => response,
+      async error => {
+        const originalRequest = error.config;
+        if (error.response && error.response.status === 401 && refreshToken && !originalRequest._retry) {
+          originalRequest._retry = true;
+          try {
+            const res = await axios.post('/api/auth/token/refresh/', { refresh: refreshToken });
+            const newAccess = res.data.access;
+            setToken(newAccess);
+            localStorage.setItem('token', newAccess);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
+            originalRequest.headers['Authorization'] = `Bearer ${newAccess}`;
+            return axios(originalRequest);
+          } catch (refreshError) {
+            logout();
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => axios.interceptors.response.eject(interceptor);
+  }, [refreshToken, logout]);
+
+  // On app load, if refreshToken exists but no access token, try to refresh.
+  useEffect(() => {
+    if (!token && refreshToken) {
+      axios.post('/api/auth/token/refresh/', { refresh: refreshToken })
+        .then(res => {
+          const newAccess = res.data.access;
+          setToken(newAccess);
+          localStorage.setItem('token', newAccess);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
+          fetchUserProfile();
+        })
+        .catch(() => {
+          logout();
+        });
+    }
+  }, [token, refreshToken, fetchUserProfile, logout]);
+
   const login = async (credentials) => {
     try {
       const response = await axios.post('/api/auth/login/', credentials);
-      const { access, user: userData } = response.data;
+      const { access: loginAccess, refresh: loginRefresh, user: loginUserData } = response.data;
       
       // Set axios authorization header immediately
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${loginAccess}`;
       
-      setToken(access);
-      setUser(userData);
-      localStorage.setItem('token', access);
+      setToken(loginAccess);
+      setRefreshToken(loginRefresh);
+      setUser(loginUserData);
+      localStorage.setItem('token', loginAccess);
+      localStorage.setItem('refreshToken', loginRefresh);
       
       return { success: true };
     } catch (error) {
@@ -74,14 +122,16 @@ export const AuthProvider = ({ children }) => {
   const register = async (registrationData) => {
     try {
       const response = await axios.post('/api/auth/register/', registrationData);
-      const { access, user: userData } = response.data;
+      const { access: registerAccess, refresh: registerRefresh, user: registerUserData } = response.data;
       
       // Set axios authorization header immediately
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${registerAccess}`;
       
-      setToken(access);
-      setUser(userData);
-      localStorage.setItem('token', access);
+      setToken(registerAccess);
+      setRefreshToken(registerRefresh);
+      setUser(registerUserData);
+      localStorage.setItem('token', registerAccess);
+      localStorage.setItem('refreshToken', registerRefresh);
       
       return { success: true };
     } catch (error) {

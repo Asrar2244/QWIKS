@@ -154,43 +154,29 @@ Customer order tracking
 ## 🔧 Configuration
 
 ### Environment Variables
-For production, create a `.env` file in the `backend/` directory. You can copy the `.env.example` file to get started.
-
-**Local Development:**
-- By default, the app uses local file storage (in the `media/` directory) and a local SQLite database. No `.env` file is needed to get started.
-
-**Production (Cloud Storage):**
-- To connect to a cloud storage provider like AWS S3 or Azure Blob Storage, you need to set the following environment variables. The application will automatically switch to cloud storage when these are detected.
+Create a `.env` file for production with:
 
 ```bash
-# General Django Settings
-SECRET_KEY=your-super-secret-key-for-production
+SECRET_KEY=your-secret-key-here
 DEBUG=False
 ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 
-# AWS S3 Configuration (or equivalent for Azure)
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-access-key
-AWS_STORAGE_BUCKET_NAME=your-s3-bucket-name
-AWS_S3_REGION_NAME=your-s3-bucket-region # e.g., us-east-1
+# Database (for production)
+DATABASE_URL=postgres://user:password@localhost:5432/qrmenu
 
-# Database (Example for production using PostgreSQL)
-# DATABASE_URL=postgres://user:password@localhost:5432/qrmenu
-
-# Email (Example for password reset)
-# EMAIL_HOST=smtp.gmail.com
-# EMAIL_PORT=587
-# EMAIL_USE_TLS=True
-# EMAIL_HOST_USER=your-email@gmail.com
-# EMAIL_HOST_PASSWORD=your-app-password
+# Email (for password reset)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
 ```
 
 ### Media Files
-- **Locally**: Images are stored in the `backend/media/` directory.
-- **In Production**: When configured, images are automatically uploaded to your cloud storage bucket (e.g., S3). The backend handles image uploads for:
-  - Restaurant logos (`/media/restaurant_logos/`)
-  - QR codes (`/media/qr_codes/`)
-  - Menu item images (`/media/menu_items/`)
+The backend handles image uploads for:
+- Restaurant logos (`/media/restaurant_logos/`)
+- QR codes (`/media/qr_codes/`)
+- Menu item images (`/media/menu_items/`)
 
 ## 🎨 Frontend Integration
 

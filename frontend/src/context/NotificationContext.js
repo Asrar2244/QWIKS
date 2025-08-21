@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { ordersAPI, handleAPIError } from '../utils/api';
 
 const NotificationContext = createContext();
@@ -16,12 +16,14 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [lastPolledAt, setLastPolledAt] = useState(new Date());
+  const knownIdsRef = useRef(new Set());
 
   // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await ordersAPI.getAll('pending');
+      // Fetch only unread notifications from dedicated endpoint
+      const response = await ordersAPI.getUnread();
       const orders = response.data.results || response.data;
       
       // Transform orders into notifications
@@ -38,6 +40,30 @@ export const NotificationProvider = ({ children }) => {
         amount: order.total_amount,
         status: order.status
       }));
+
+      // Detect new notifications compared to previous poll
+      const incomingIds = new Set(orderNotifications.map(n => n.id));
+      const prevKnown = knownIdsRef.current;
+      const newlyArrived = orderNotifications.filter(n => !prevKnown.has(n.id));
+
+      // Update known IDs
+      knownIdsRef.current = incomingIds;
+
+      // Prepend newly arrived as "new" to trigger browser notifications
+      if (newlyArrived.length > 0) {
+        newlyArrived.forEach(n => {
+          // Show browser notification if permission granted
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification(n.title, {
+                body: n.message,
+                icon: '/favicon.ico',
+                tag: `order-${n.id}`
+              });
+            } catch (_) { /* no-op */ }
+          }
+        });
+      }
 
       setNotifications(orderNotifications);
       
@@ -59,17 +85,16 @@ export const NotificationProvider = ({ children }) => {
       const notification = notifications.find(n => n.id === notificationId);
       if (notification && !notification.read) {
         await ordersAPI.markNotificationRead(notification.orderId);
-        
-        setNotifications(prev => 
-          prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-        );
-        
+        // Remove it from the list immediately since we only show unread
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
         setUnreadCount(prev => Math.max(0, prev - 1));
+        // Refresh from server to stay in sync
+        fetchNotifications();
       }
     } catch (error) {
       console.error('Failed to mark notification as read:', handleAPIError(error));
     }
-  }, [notifications]);
+  }, [notifications, fetchNotifications]);
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
@@ -126,16 +151,35 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
-  // Poll for new notifications
+  // Poll for new notifications (aggressive for near real-time)
   useEffect(() => {
-    fetchNotifications();
-    
-    // Set up polling every 30 seconds
-    const interval = setInterval(() => {
+    let intervalId;
+    const startPolling = () => {
       fetchNotifications();
-    }, 30000);
+      intervalId = setInterval(fetchNotifications, 5000);
+    };
 
-    return () => clearInterval(interval);
+    const stopPolling = () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+
+    // Start immediately
+    startPolling();
+
+    // Pause when tab is hidden to save resources
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        startPolling();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [fetchNotifications]);
 
   // Request notification permission

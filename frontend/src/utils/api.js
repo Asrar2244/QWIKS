@@ -45,12 +45,12 @@ export const ordersAPI = {
     const params = status ? `?status=${status}` : '';
     return axios.get(`${API_BASE_URL}/orders/${params}`);
   },
+  getUnread: () => axios.get(`${API_BASE_URL}/orders/notifications/`),
   updateStatus: (orderId, status) => 
     axios.patch(`${API_BASE_URL}/orders/${orderId}/status/`, { status }),
   edit: (orderId, data) => 
     axios.put(`${API_BASE_URL}/orders/${orderId}/edit/`, data),
   create: (data) => axios.post(`${API_BASE_URL}/orders/create/`, data),
-  getNotifications: () => axios.get(`${API_BASE_URL}/orders/notifications/`),
   markNotificationRead: (orderId) => axios.patch(`${API_BASE_URL}/orders/${orderId}/mark-read/`),
 };
 

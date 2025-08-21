@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -22,9 +23,10 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
+      <NotificationProvider>
+        <Router>
+          <div className="App">
+            <Routes>
             {/* Customer Routes - No Layout */}
             <Route path="/menu/:restaurantSlug/:tableId" element={<CustomerMenu />} />
             <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
@@ -50,10 +52,11 @@ function App() {
             } />
             
             {/* Default redirect */}
-            <Route path="/" element={<AdminLogin />} />
-          </Routes>
-        </div>
-      </Router>
+              <Route path="/" element={<AdminLogin />} />
+            </Routes>
+          </div>
+        </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

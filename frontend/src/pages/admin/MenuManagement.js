@@ -393,7 +393,7 @@ const MenuManagement = () => {
     } catch (error) {
       setError(handleAPIError(error));
     }
-  }, [editingItem, itemForm, fetchData]);
+  }, [editingItem, itemForm, fetchData, closeItemModal]);
 
   const closeCategoryModal = () => {
     setShowCategoryModal(false);

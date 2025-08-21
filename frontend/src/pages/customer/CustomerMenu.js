@@ -172,7 +172,7 @@ const CustomerMenu = () => {
     customer_phone: ''
   });
   const [showCart, setShowCart] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [vegFilter, setVegFilter] = useState('all'); // 'all', 'veg', 'non-veg'
@@ -181,9 +181,6 @@ const CustomerMenu = () => {
     try {
       const response = await publicAPI.getMenu(restaurantSlug, tableId);
       setMenuData(response.data);
-      if (response.data.categories && response.data.categories.length > 0) {
-        setSelectedCategory(response.data.categories[0].id);
-      }
     } catch (error) {
       setError(handleAPIError(error));
     } finally {
@@ -324,6 +321,25 @@ const CustomerMenu = () => {
 
   // Filter items based on search query and veg filter
   const getFilteredItems = () => {
+    if (selectedCategory === 'all') {
+      let items = (menuData?.categories || []).flatMap(cat => cat.items || []);
+      // Filter by search query
+      if (searchQuery) {
+        items = items.filter(item =>
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+      }
+      // Filter by vegetarian status
+      if (vegFilter !== 'all') {
+        items = items.filter(item => {
+          if (vegFilter === 'veg') return item.is_vegetarian;
+          if (vegFilter === 'non-veg') return !item.is_vegetarian;
+          return true;
+        });
+      }
+      return items;
+    }
     if (!selectedCategoryData?.items) return [];
     
     let items = selectedCategoryData.items;
@@ -694,7 +710,7 @@ const CustomerMenu = () => {
         <div className="sticky top-16 sm:top-20 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-100 theme-category-bar">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex space-x-2 sm:space-x-3 overflow-x-auto scrollbar-hide">
-              {menuData.categories.map((category) => (
+              {[{ id: 'all', name: 'All' }, ...(menuData?.categories || [])].map((category) => (
                 <CategoryButton key={category.id} category={category} />
               ))}
             </div>

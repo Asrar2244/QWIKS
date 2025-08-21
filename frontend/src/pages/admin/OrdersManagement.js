@@ -84,7 +84,7 @@ const OrdersManagement = () => {
       setLoading(false);
       setIsUpdating(false);
     }
-  }, [statusFilter, orders.length]);
+  }, [statusFilter, orders]);
 
   // Real-time order updates
   useEffect(() => {

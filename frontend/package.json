@@ -16,6 +16,7 @@
   },
   "scripts": {
     "start": "cross-env DANGEROUSLY_DISABLE_HOST_CHECK=true react-scripts start",
+    "dev": "npm start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

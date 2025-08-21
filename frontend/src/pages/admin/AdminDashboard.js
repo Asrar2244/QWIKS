@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { dashboardAPI, handleAPIError } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
 
 
 const AdminDashboard = () => {
@@ -10,21 +11,23 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const { user, token } = useAuth();
+  const { lastPolledAt } = useNotifications();
 
 
   useEffect(() => {
-    // Only fetch stats when we have both user and token
     if (user && token) {
       fetchStats();
-      
-      // Set up auto-refresh every 30 seconds
-      const interval = setInterval(() => {
-        fetchStats();
-      }, 30000);
-      
-      return () => clearInterval(interval);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, token]);
+
+  // Refresh stats whenever notifications poll ticks
+  useEffect(() => {
+    if (user && token) {
+      fetchStats();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastPolledAt, user, token]);
 
   // Update document title with restaurant name
   useEffect(() => {
@@ -40,7 +43,7 @@ const AdminDashboard = () => {
     };
   }, [stats?.restaurant?.name]);
 
-  const fetchStats = async (showSuccessMessage = false) => {
+  const fetchStats = useCallback(async (showSuccessMessage = false) => {
     try {
       const response = await dashboardAPI.getStats();
       setStats(response.data);
@@ -51,7 +54,7 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const StatCard = ({ title, value, icon, gradient, trend, trendValue, link = null }) => (
     <div className={`relative bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden`}>
