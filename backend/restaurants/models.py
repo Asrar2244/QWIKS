@@ -114,7 +114,10 @@ class Table(models.Model):
         )
         
         # QR code will contain the menu URL
-        menu_url = f"http://localhost:3000/menu/{self.restaurant.slug}/{self.id}"
+        # Use environment variable for frontend URL, fallback to production URL
+        from django.conf import settings
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://qwiks-frontend.onrender.com')
+        menu_url = f"{frontend_url}/menu/{self.restaurant.slug}/{self.id}"
         qr.add_data(menu_url)
         qr.make(fit=True)
         

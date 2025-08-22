@@ -236,6 +236,9 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
+# Frontend URL for QR codes and links
+FRONTEND_URL = config('FRONTEND_URL', default='https://qwiks-frontend.onrender.com')
+
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",

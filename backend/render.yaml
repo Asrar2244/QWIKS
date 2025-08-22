@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: qr-menu-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py migrate && python manage.py collectstatic --noinput && gunicorn qr_menu_app.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.16
+      - key: FRONTEND_URL
+        value: https://qwiks-frontend.onrender.com
+      - key: ALLOWED_HOSTS
+        value: qwiks-backend.onrender.com,localhost,127.0.0.1

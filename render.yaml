@@ -14,3 +14,5 @@ services:
         value: https://qwiks-backend.onrender.com/api
       - key: REACT_APP_BACKEND_URL
         value: https://qwiks-backend.onrender.com
+      - key: REACT_APP_FRONTEND_URL
+        value: https://qwiks-frontend.onrender.com
