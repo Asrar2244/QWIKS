@@ -16,3 +16,14 @@ services:
         value: https://qwiks-backend.onrender.com
       - key: REACT_APP_FRONTEND_URL
         value: https://qwiks-frontend.onrender.com
+    # Handle client-side routing
+    routes:
+      - type: rewrite
+        source: /admin/*
+        destination: /index.html
+      - type: rewrite
+        source: /menu/*
+        destination: /index.html
+      - type: rewrite
+        source: /order-confirmation/*
+        destination: /index.html

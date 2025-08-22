@@ -19,7 +19,8 @@
     "build:render": "cross-env CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "postinstall": "chmod +x node_modules/.bin/* 2>/dev/null || true"
+    "postinstall": "chmod +x node_modules/.bin/* 2>/dev/null || true",
+    "postbuild": "cp public/_redirects build/ && cp vercel.json build/"
   },
   "eslintConfig": {
     "extends": [
