@@ -240,16 +240,53 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://qwiks-frontend.onrender.com",
     "https://qwiks-backend.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Additional CORS settings for production
+CORS_ALLOWED_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_ALLOWED_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# CORS additional settings
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'content-disposition',
+]
+
+# Allow credentials and cookies
+CORS_ALLOW_CREDENTIALS = True
+
+# Handle preflight requests
+CORS_PREFLIGHT_MAX_AGE = 86400
+
 # Only allow all origins in development
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_CREDENTIALS = True
 else:
     CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOW_CREDENTIALS = True
 
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB

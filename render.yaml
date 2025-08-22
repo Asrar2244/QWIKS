@@ -10,3 +10,7 @@ services:
         value: 18.17.0
       - key: CI
         value: false
+      - key: REACT_APP_API_URL
+        value: https://qwiks-backend.onrender.com/api
+      - key: REACT_APP_BACKEND_URL
+        value: https://qwiks-backend.onrender.com
