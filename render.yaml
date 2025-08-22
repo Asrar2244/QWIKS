@@ -2,6 +2,7 @@ services:
   - type: web
     name: qr-menu-frontend
     env: static
+    rootDir: frontend
     buildCommand: npm install && npm run build:render
     staticPublishPath: ./build
     envVars:
@@ -9,6 +10,3 @@ services:
         value: 18.17.0
       - key: CI
         value: false
-    buildFilter:
-      paths:
-        - frontend/**
