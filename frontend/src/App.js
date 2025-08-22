@@ -21,10 +21,6 @@ import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
-  // Debug logging for route matching
-  console.log('🚀 App Component Rendered');
-  console.log('📍 Current Pathname:', window.location.pathname);
-  
   return (
     <AuthProvider>
       {/* <NotificationProvider> */}
