@@ -43,7 +43,7 @@ const AdminLayout = ({ children }) => {
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } transition-transform duration-300 ease-in-out`}>
         <div className="flex items-center justify-between h-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4">
-          <h1 className="text-xl font-bold">QR Menu Admin</h1>
+          <h1 className="text-xl font-bold">QWIKS</h1>
           <button
             onClick={() => setSidebarOpen(false)}
             className="text-white hover:text-gray-200 transition-colors duration-200"

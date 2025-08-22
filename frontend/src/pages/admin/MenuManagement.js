@@ -395,19 +395,19 @@ const MenuManagement = () => {
     }
   }, [editingItem, itemForm, fetchData, closeItemModal]);
 
-  const closeCategoryModal = () => {
+  function closeCategoryModal() {
     setShowCategoryModal(false);
     setEditingCategory(null);
     setCategoryForm({ name: '', description: '', order: 0 });
-  };
+  }
 
-  const closeItemModal = () => {
+  function closeItemModal() {
     setShowItemModal(false);
     setEditingItem(null);
     resetItemForm();
-  };
+  }
 
-  const resetItemForm = () => {
+  function resetItemForm() {
     setItemForm({
       name: '',
       description: '',
@@ -423,7 +423,7 @@ const MenuManagement = () => {
     });
     setImageError('');
     setImagePreview(null);
-  };
+  }
 
   const openEditCategory = (category) => {
     setEditingCategory(category);

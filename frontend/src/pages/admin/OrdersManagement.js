@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ordersAPI, menuItemsAPI, categoriesAPI, restaurantAPI, handleAPIError } from '../../utils/api';
 import * as XLSX from 'xlsx';
 
@@ -36,6 +36,24 @@ const OrdersManagement = () => {
   // Add state for service tax percentage
   const [serviceTaxPercent, setServiceTaxPercent] = useState(5);
 
+  // Track if any modal is open to pause background polling (prevents flicker)
+  const isModalOpenRef = useRef(false);
+  useEffect(() => {
+    isModalOpenRef.current = showEditModal || showAddItemModal || showPrintModal;
+  }, [showEditModal, showAddItemModal, showPrintModal]);
+
+  // Lock body scroll when any modal is open to prevent layout shifts and missed clicks
+  useEffect(() => {
+    const anyOpen = showEditModal || showAddItemModal || showPrintModal;
+    const prev = document.body.style.overflow;
+    if (anyOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = prev; };
+  }, [showEditModal, showAddItemModal, showPrintModal]);
+
   // Add state for startDate and endDate
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -52,6 +70,10 @@ const OrdersManagement = () => {
 
   const fetchOrders = useCallback(async (isBackgroundUpdate = false) => {
     try {
+      // Skip background refreshes while editing/printing to avoid UI flicker
+      if (isBackgroundUpdate && isModalOpenRef.current) {
+        return;
+      }
       if (isBackgroundUpdate) {
         setIsUpdating(true);
       }
@@ -176,6 +198,7 @@ const OrdersManagement = () => {
         }))
       });
       setShowEditModal(true);
+      isModalOpenRef.current = true;
     } catch (error) {
       setError(handleAPIError(error));
     }
@@ -369,6 +392,7 @@ const OrdersManagement = () => {
       notes: '',
       items: []
     });
+    isModalOpenRef.current = false;
   };
 
   const addItemToOrder = (menuItem) => {
@@ -518,7 +542,7 @@ const OrdersManagement = () => {
   );
 
   const EditOrderModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[200] flex items-center justify-center p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6">
@@ -528,7 +552,8 @@ const OrdersManagement = () => {
               <p className="text-green-100 text-sm">Table {editingOrder?.table_number}</p>
             </div>
             <button
-              onClick={closeEditModal}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); closeEditModal(); }}
               className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors duration-200"
             >
               <span className="text-lg">✕</span>
@@ -543,7 +568,8 @@ const OrdersManagement = () => {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Order Items</h3>
                 <button
-                  onClick={openAddItemModal}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); openAddItemModal(); }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2 shadow-md"
                 >
                   <span className="text-lg">+</span>
@@ -564,21 +590,24 @@ const OrdersManagement = () => {
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center space-x-2 bg-white rounded-lg border border-gray-300 px-2 py-1">
                           <button
-                            onClick={() => updateItemQuantity(item.menu_item, item.quantity - 1)}
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); updateItemQuantity(item.menu_item, item.quantity - 1); }}
                             className="w-7 h-7 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200 transition-colors duration-200"
                           >
                             -
                           </button>
                           <span className="w-8 text-center font-semibold">{item.quantity}</span>
                           <button
-                            onClick={() => updateItemQuantity(item.menu_item, item.quantity + 1)}
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); updateItemQuantity(item.menu_item, item.quantity + 1); }}
                             className="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-200 transition-colors duration-200"
                           >
                             +
                           </button>
                         </div>
                         <button
-                          onClick={() => removeItemFromOrder(item.menu_item)}
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); removeItemFromOrder(item.menu_item); }}
                           className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors duration-200"
                           title="Remove item"
                         >
@@ -651,13 +680,15 @@ const OrdersManagement = () => {
         <div className="p-6 bg-gray-50 border-t border-gray-200">
           <div className="flex justify-end space-x-3">
             <button
-              onClick={closeEditModal}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); closeEditModal(); }}
               className="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
             >
               Cancel
             </button>
             <button
-              onClick={handleSaveOrder}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); handleSaveOrder(); }}
               className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium shadow-md"
             >
               Save Changes
@@ -681,6 +712,7 @@ const OrdersManagement = () => {
       setShowAddItemModal(true);
       setItemSearchQuery('');
       setSelectedCategory('all');
+      isModalOpenRef.current = true;
     } catch (error) {
       setError(handleAPIError(error));
     }
@@ -690,6 +722,7 @@ const OrdersManagement = () => {
     setShowAddItemModal(false);
     setItemSearchQuery('');
     setSelectedCategory('all');
+    isModalOpenRef.current = false;
   };
 
   const getFilteredMenuItems = () => {
@@ -718,7 +751,7 @@ const OrdersManagement = () => {
 
   // Add Item Modal Component
   const AddItemModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[220] flex items-center justify-center p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6">
@@ -728,7 +761,8 @@ const OrdersManagement = () => {
               <p className="text-blue-100 text-sm">Search and add menu items to the order</p>
             </div>
             <button
-              onClick={closeAddItemModal}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); closeAddItemModal(); }}
               className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors duration-200"
             >
               <span className="text-lg">✕</span>
@@ -797,7 +831,8 @@ const OrdersManagement = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold text-green-600">₹{menuItem.price}</span>
                     <button
-                      onClick={() => addItemToOrderFromModal(menuItem)}
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); addItemToOrderFromModal(menuItem); }}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-1"
                     >
                       <span className="text-sm">+</span>
@@ -832,7 +867,8 @@ const OrdersManagement = () => {
         <div className="p-6 bg-gray-50 border-t border-gray-200">
           <div className="flex justify-end space-x-3">
             <button
-              onClick={closeAddItemModal}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); closeAddItemModal(); }}
               className="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
             >
               Cancel
@@ -1120,7 +1156,7 @@ const OrdersManagement = () => {
       )}
 
       {showPrintModal && printOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-[240] flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm">
             <h2 className="text-lg font-bold mb-4">Print Bill Options</h2>
             <div className="flex items-center mb-4">
@@ -1149,13 +1185,15 @@ const OrdersManagement = () => {
             </div>
             <div className="flex justify-end space-x-2">
               <button
-                onClick={() => setShowPrintModal(false)}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setShowPrintModal(false); isModalOpenRef.current = false; }}
                 className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
               >
                 Cancel
               </button>
               <button
-                onClick={() => printBill(printOrder, includeServiceTax, serviceTaxPercent)}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); printBill(printOrder, includeServiceTax, serviceTaxPercent); }}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 Print Bill
