@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { dashboardAPI, handleAPIError } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
-import { useNotifications } from '../../context/NotificationContext';
+// import { useNotifications } from '../../context/NotificationContext';
 
 
 const AdminDashboard = () => {
@@ -11,7 +11,8 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const { user, token } = useAuth();
-  const { lastPolledAt } = useNotifications();
+  // const { lastPolledAt } = useNotifications();
+  const lastPolledAt = new Date(); // Temporary fallback
 
 
   useEffect(() => {

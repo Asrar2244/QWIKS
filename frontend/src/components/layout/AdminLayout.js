@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useNotifications } from '../../context/NotificationContext';
-import NotificationDropdown from '../notifications/NotificationDropdown';
+// import { useNotifications } from '../../context/NotificationContext';
+// import NotificationDropdown from '../notifications/NotificationDropdown';
 
 const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const { user, logout } = useAuth();
-  const { unreadCount } = useNotifications();
+  // const { unreadCount } = useNotifications();
+  const unreadCount = 0; // Temporary fallback
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -164,10 +165,10 @@ const AdminLayout = ({ children }) => {
       </div>
 
       {/* Notification Dropdown */}
-      <NotificationDropdown 
+      {/* <NotificationDropdown 
         isOpen={notificationOpen} 
         onClose={() => setNotificationOpen(false)} 
-      />
+      /> */}
     </div>
   );
 };

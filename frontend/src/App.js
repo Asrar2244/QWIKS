@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { NotificationProvider } from './context/NotificationContext';
+// import { NotificationProvider } from './context/NotificationContext';
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -23,7 +23,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 function App() {
   return (
     <AuthProvider>
-      <NotificationProvider>
+      {/* <NotificationProvider> */}
         <Router>
           <div className="App">
             <Routes>
@@ -56,7 +56,7 @@ function App() {
             </Routes>
           </div>
         </Router>
-      </NotificationProvider>
+      {/* </NotificationProvider> */}
     </AuthProvider>
   );
 }
