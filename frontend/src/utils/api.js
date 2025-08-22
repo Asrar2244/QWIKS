@@ -1,10 +1,30 @@
 import axios from 'axios';
 
-// Use environment variables for API URL configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 
-  (process.env.NODE_ENV === 'production' 
-    ? 'https://qwiks-backend.onrender.com/api'
-    : '/api');
+// Build information for debugging
+const BUILD_INFO = {
+  version: '1.0.1',
+  timestamp: new Date().toISOString(),
+  environment: process.env.NODE_ENV
+};
+
+// Determine API base URL based on environment
+let API_BASE_URL;
+if (process.env.NODE_ENV === 'production') {
+  // Production: Use the backend URL directly
+  API_BASE_URL = 'https://qwiks-backend.onrender.com/api';
+} else {
+  // Development: Use relative path for local development
+  API_BASE_URL = '/api';
+}
+
+// Debug logging
+console.log('=== API Configuration Debug ===');
+console.log('Build Info:', BUILD_INFO);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('process.env.REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+console.log('process.env.REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
+console.log('================================');
 
 // Create axios instance with default configuration
 const apiClient = axios.create({
@@ -18,10 +38,14 @@ const apiClient = axios.create({
 // Add request interceptor for debugging
 apiClient.interceptors.request.use(
   (config) => {
-    console.log('API Request:', config.method?.toUpperCase(), config.url);
+    const fullUrl = config.baseURL + config.url;
+    console.log('🚀 API Request:', config.method?.toUpperCase(), fullUrl);
+    console.log('📡 Base URL:', config.baseURL);
+    console.log('🔗 Endpoint:', config.url);
     return config;
   },
   (error) => {
+    console.error('❌ Request Error:', error);
     return Promise.reject(error);
   }
 );
@@ -29,11 +53,17 @@ apiClient.interceptors.request.use(
 // Add response interceptor for debugging
 apiClient.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.config.url);
+    console.log('✅ API Response:', response.status, response.config.url);
     return response;
   },
   (error) => {
-    console.error('API Error:', error.response?.status, error.config?.url, error.message);
+    console.error('❌ API Error:', {
+      status: error.response?.status,
+      url: error.config?.url,
+      baseURL: error.config?.baseURL,
+      fullURL: error.config?.baseURL + error.config?.url,
+      message: error.message
+    });
     return Promise.reject(error);
   }
 );
