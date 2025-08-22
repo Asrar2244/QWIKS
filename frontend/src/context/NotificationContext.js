@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { ordersAPI, handleAPIError } from '../utils/api';
+import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();
 
@@ -12,14 +13,21 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider = ({ children }) => {
+  const { user, token } = useAuth(); // Get authentication status
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [lastPolledAt, setLastPolledAt] = useState(new Date());
+  const [lastPolledAt, setLastPolledAt] = useState(null);
   const knownIdsRef = useRef(new Set());
 
   // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
+    // Only fetch notifications if user is authenticated
+    if (!user || !token) {
+      console.log('User not authenticated, skipping notification fetch');
+      return;
+    }
+
     try {
       setIsLoading(true);
       // Fetch only unread notifications from dedicated endpoint
@@ -74,10 +82,15 @@ export const NotificationProvider = ({ children }) => {
       setLastPolledAt(new Date());
     } catch (error) {
       console.error('Failed to fetch notifications:', handleAPIError(error));
+      // If it's an authentication error, don't keep retrying
+      if (error.response?.status === 401) {
+        console.log('Authentication failed, stopping notification polling');
+        return;
+      }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user, token]);
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId) => {
@@ -151,26 +164,38 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
-  // Poll for new notifications (aggressive for near real-time)
+  // Poll for new notifications (only when authenticated)
   useEffect(() => {
     let intervalId;
+    
     const startPolling = () => {
-      fetchNotifications();
-      intervalId = setInterval(fetchNotifications, 5000);
+      if (user && token) {
+        console.log('Starting notification polling - user authenticated');
+        fetchNotifications();
+        intervalId = setInterval(fetchNotifications, 5000);
+      }
     };
 
     const stopPolling = () => {
-      if (intervalId) clearInterval(intervalId);
+      if (intervalId) {
+        console.log('Stopping notification polling');
+        clearInterval(intervalId);
+        intervalId = null;
+      }
     };
 
-    // Start immediately
-    startPolling();
+    // Only start polling if user is authenticated
+    if (user && token) {
+      startPolling();
+    } else {
+      stopPolling();
+    }
 
     // Pause when tab is hidden to save resources
     const handleVisibility = () => {
       if (document.hidden) {
         stopPolling();
-      } else {
+      } else if (user && token) {
         startPolling();
       }
     };
@@ -180,7 +205,7 @@ export const NotificationProvider = ({ children }) => {
       stopPolling();
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [fetchNotifications]);
+  }, [fetchNotifications, user, token]);
 
   // Request notification permission
   useEffect(() => {

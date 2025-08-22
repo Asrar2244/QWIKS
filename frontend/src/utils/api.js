@@ -35,13 +35,23 @@ const apiClient = axios.create({
   withCredentials: true, // Enable credentials for CORS
 });
 
-// Add request interceptor for debugging
+// Add request interceptor for debugging and authentication
 apiClient.interceptors.request.use(
   (config) => {
     const fullUrl = config.baseURL + config.url;
     console.log('🚀 API Request:', config.method?.toUpperCase(), fullUrl);
     console.log('📡 Base URL:', config.baseURL);
     console.log('🔗 Endpoint:', config.url);
+    
+    // Add authorization header if token exists
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔐 Auth token included');
+    } else {
+      console.log('⚠️ No auth token available');
+    }
+    
     return config;
   },
   (error) => {
@@ -50,13 +60,13 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor for debugging
+// Add response interceptor for debugging and token refresh
 apiClient.interceptors.response.use(
   (response) => {
     console.log('✅ API Response:', response.status, response.config.url);
     return response;
   },
-  (error) => {
+  async (error) => {
     console.error('❌ API Error:', {
       status: error.response?.status,
       url: error.config?.url,
@@ -64,6 +74,42 @@ apiClient.interceptors.response.use(
       fullURL: error.config?.baseURL + error.config?.url,
       message: error.message
     });
+    
+    // Handle token refresh for 401 errors
+    if (error.response?.status === 401 && !error.config._retry) {
+      error.config._retry = true;
+      
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          console.log('🔄 Attempting token refresh...');
+          
+          // Use the same base URL for token refresh
+          const baseURL = process.env.NODE_ENV === 'production' 
+            ? 'https://qwiks-backend.onrender.com/api'
+            : '/api';
+          
+          const refreshResponse = await axios.post(`${baseURL}/auth/token/refresh/`, {
+            refresh: refreshToken
+          });
+          
+          const newToken = refreshResponse.data.access;
+          localStorage.setItem('token', newToken);
+          
+          // Retry the original request with new token
+          error.config.headers.Authorization = `Bearer ${newToken}`;
+          console.log('🔄 Retrying request with new token');
+          
+          return apiClient(error.config);
+        }
+      } catch (refreshError) {
+        console.error('❌ Token refresh failed:', refreshError);
+        // Clear invalid tokens
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+      }
+    }
+    
     return Promise.reject(error);
   }
 );

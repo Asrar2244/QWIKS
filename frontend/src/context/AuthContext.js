@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { restaurantAPI } from '../utils/api';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -24,12 +25,13 @@ export const AuthProvider = ({ children }) => {
     setRefreshToken(null);
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    delete axios.defaults.headers.common['Authorization'];
+    // Clear any stored user data
+    setUser(null);
   }, []);
 
   const fetchUserProfile = useCallback(async () => {
     try {
-      const response = await axios.get('/api/auth/profile/');
+      const response = await restaurantAPI.getDetails();
       setUser(response.data);
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -39,69 +41,57 @@ export const AuthProvider = ({ children }) => {
     }
   }, [logout]);
 
-  // Setup axios interceptor for authentication
+  // Setup authentication when token changes
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
       // Verify token and get user info
       fetchUserProfile();
     } else {
-      delete axios.defaults.headers.common['Authorization'];
       setLoading(false);
     }
   }, [token, fetchUserProfile]);
 
-  // Axios interceptor for auto-refresh
-  useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
-      response => response,
-      async error => {
-        const originalRequest = error.config;
-        if (error.response && error.response.status === 401 && refreshToken && !originalRequest._retry) {
-          originalRequest._retry = true;
-          try {
-            const res = await axios.post('/api/auth/token/refresh/', { refresh: refreshToken });
-            const newAccess = res.data.access;
-            setToken(newAccess);
-            localStorage.setItem('token', newAccess);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
-            originalRequest.headers['Authorization'] = `Bearer ${newAccess}`;
-            return axios(originalRequest);
-          } catch (refreshError) {
-            logout();
-          }
-        }
-        return Promise.reject(error);
-      }
-    );
-    return () => axios.interceptors.response.eject(interceptor);
+  // Handle token refresh
+  const refreshAccessToken = useCallback(async () => {
+    if (!refreshToken) return null;
+    
+    try {
+      // Use the same base URL as our API configuration
+      const baseURL = process.env.NODE_ENV === 'production' 
+        ? 'https://qwiks-backend.onrender.com/api'
+        : '/api';
+      
+      const response = await axios.post(`${baseURL}/auth/token/refresh/`, { 
+        refresh: refreshToken 
+      });
+      
+      const newAccess = response.data.access;
+      setToken(newAccess);
+      localStorage.setItem('token', newAccess);
+      return newAccess;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      logout();
+      return null;
+    }
   }, [refreshToken, logout]);
 
-  // On app load, if refreshToken exists but no access token, try to refresh.
+  // On app load, if refreshToken exists but no access token, try to refresh
   useEffect(() => {
     if (!token && refreshToken) {
-      axios.post('/api/auth/token/refresh/', { refresh: refreshToken })
-        .then(res => {
-          const newAccess = res.data.access;
-          setToken(newAccess);
-          localStorage.setItem('token', newAccess);
-          axios.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
-          fetchUserProfile();
-        })
-        .catch(() => {
-          logout();
-        });
+      refreshAccessToken();
     }
-  }, [token, refreshToken, fetchUserProfile, logout]);
+  }, [token, refreshToken, refreshAccessToken]);
 
   const login = async (credentials) => {
     try {
-      const response = await axios.post('/api/auth/login/', credentials);
-      const { access: loginAccess, refresh: loginRefresh, user: loginUserData } = response.data;
+      // Use the same base URL as our API configuration
+      const baseURL = process.env.NODE_ENV === 'production' 
+        ? 'https://qwiks-backend.onrender.com/api'
+        : '/api';
       
-      // Set axios authorization header immediately
-      axios.defaults.headers.common['Authorization'] = `Bearer ${loginAccess}`;
+      const response = await axios.post(`${baseURL}/auth/login/`, credentials);
+      const { access: loginAccess, refresh: loginRefresh, user: loginUserData } = response.data;
       
       setToken(loginAccess);
       setRefreshToken(loginRefresh);
@@ -121,11 +111,13 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (registrationData) => {
     try {
-      const response = await axios.post('/api/auth/register/', registrationData);
-      const { access: registerAccess, refresh: registerRefresh, user: registerUserData } = response.data;
+      // Use the same base URL as our API configuration
+      const baseURL = process.env.NODE_ENV === 'production' 
+        ? 'https://qwiks-backend.onrender.com/api'
+        : '/api';
       
-      // Set axios authorization header immediately
-      axios.defaults.headers.common['Authorization'] = `Bearer ${registerAccess}`;
+      const response = await axios.post(`${baseURL}/auth/register/`, registrationData);
+      const { access: registerAccess, refresh: registerRefresh, user: registerUserData } = response.data;
       
       setToken(registerAccess);
       setRefreshToken(registerRefresh);
@@ -138,7 +130,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Registration error:', error);
       return { 
         success: false, 
-        error: error.response?.data || 'Registration failed' 
+        error: error.response?.data?.error || 'Registration failed' 
       };
     }
   };
