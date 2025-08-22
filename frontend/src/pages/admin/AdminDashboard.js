@@ -12,6 +12,27 @@ const AdminDashboard = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const { user, token } = useAuth();
 
+  // Debug logging
+  console.log('🎯 AdminDashboard Component Loading', { user: !!user, token: !!token });
+
+
+  const fetchStats = useCallback(async (showSuccessMessage = false) => {
+    try {
+      setLoading(true);
+      const response = await dashboardAPI.getStats();
+      setStats(response.data);
+      setLastUpdated(new Date());
+      setError(''); // Clear any previous errors
+      
+      if (showSuccessMessage) {
+        console.log('✅ Stats refreshed successfully');
+      }
+    } catch (error) {
+      setError(handleAPIError(error));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (user && token) {
@@ -44,8 +65,6 @@ const AdminDashboard = () => {
       document.title = 'QR Menu Admin';
     };
   }, [stats?.restaurant?.name]);
-
-  const fetchStats = useCallback(async (showSuccessMessage = false) => {
     try {
       setLoading(true);
       const response = await dashboardAPI.getStats();
