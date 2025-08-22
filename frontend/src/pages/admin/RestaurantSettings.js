@@ -602,7 +602,7 @@ const RestaurantSettings = () => {
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-sm text-gray-600 mb-2">Your restaurant menu URL:</p>
             <p className="text-lg font-mono bg-white p-2 rounded border">
-              http://localhost:3000/menu/{restaurant?.slug}/[table-id]
+              {typeof window !== 'undefined' ? window.location.origin : 'https://qwiks-frontend.onrender.com'}/menu/{restaurant?.slug}/[table-id]
             </p>
             <p className="text-xs text-gray-500 mt-2">
               This URL will be encoded in QR codes for each table
