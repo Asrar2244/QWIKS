@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { ordersAPI, handleAPIError } from '../utils/api';
-import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();
 
@@ -13,17 +12,31 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider = ({ children }) => {
-  const { user, token } = useAuth(); // Get authentication status
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [lastPolledAt, setLastPolledAt] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const knownIdsRef = useRef(new Set());
+
+  // Check authentication status safely
+  const checkAuthStatus = useCallback(() => {
+    try {
+      const token = localStorage.getItem('token');
+      const hasToken = !!token;
+      setIsAuthenticated(hasToken);
+      return hasToken;
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      setIsAuthenticated(false);
+      return false;
+    }
+  }, []);
 
   // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
     // Only fetch notifications if user is authenticated
-    if (!user || !token) {
+    if (!isAuthenticated) {
       console.log('User not authenticated, skipping notification fetch');
       return;
     }
@@ -85,12 +98,13 @@ export const NotificationProvider = ({ children }) => {
       // If it's an authentication error, don't keep retrying
       if (error.response?.status === 401) {
         console.log('Authentication failed, stopping notification polling');
+        setIsAuthenticated(false);
         return;
       }
     } finally {
       setIsLoading(false);
     }
-  }, [user, token]);
+  }, [isAuthenticated]);
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId) => {
@@ -164,12 +178,35 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
+  // Monitor authentication status changes
+  useEffect(() => {
+    // Check auth status on mount
+    checkAuthStatus();
+    
+    // Set up interval to check auth status
+    const authCheckInterval = setInterval(checkAuthStatus, 1000);
+    
+    // Listen for storage changes (login/logout)
+    const handleStorageChange = (e) => {
+      if (e.key === 'token') {
+        checkAuthStatus();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      clearInterval(authCheckInterval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [checkAuthStatus]);
+
   // Poll for new notifications (only when authenticated)
   useEffect(() => {
     let intervalId;
     
     const startPolling = () => {
-      if (user && token) {
+      if (isAuthenticated) {
         console.log('Starting notification polling - user authenticated');
         fetchNotifications();
         intervalId = setInterval(fetchNotifications, 5000);
@@ -185,7 +222,7 @@ export const NotificationProvider = ({ children }) => {
     };
 
     // Only start polling if user is authenticated
-    if (user && token) {
+    if (isAuthenticated) {
       startPolling();
     } else {
       stopPolling();
@@ -195,7 +232,7 @@ export const NotificationProvider = ({ children }) => {
     const handleVisibility = () => {
       if (document.hidden) {
         stopPolling();
-      } else if (user && token) {
+      } else if (isAuthenticated) {
         startPolling();
       }
     };
@@ -205,7 +242,7 @@ export const NotificationProvider = ({ children }) => {
       stopPolling();
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [fetchNotifications, user, token]);
+  }, [fetchNotifications, isAuthenticated]);
 
   // Request notification permission
   useEffect(() => {
