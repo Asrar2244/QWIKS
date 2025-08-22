@@ -11,8 +11,6 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const { user, token } = useAuth();
-  // const { lastPolledAt } = useNotifications();
-  const lastPolledAt = new Date(); // Temporary fallback
 
 
   useEffect(() => {
@@ -22,13 +20,16 @@ const AdminDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, token]);
 
-  // Refresh stats whenever notifications poll ticks
+  // Refresh stats periodically (every 30 seconds) instead of on every notification poll
   useEffect(() => {
     if (user && token) {
-      fetchStats();
+      const interval = setInterval(() => {
+        fetchStats();
+      }, 30000); // 30 seconds
+      
+      return () => clearInterval(interval);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastPolledAt, user, token]);
+  }, [user, token, fetchStats]);
 
   // Update document title with restaurant name
   useEffect(() => {
@@ -46,10 +47,15 @@ const AdminDashboard = () => {
 
   const fetchStats = useCallback(async (showSuccessMessage = false) => {
     try {
+      setLoading(true);
       const response = await dashboardAPI.getStats();
       setStats(response.data);
       setLastUpdated(new Date());
       setError(''); // Clear any previous errors
+      
+      if (showSuccessMessage) {
+        console.log('✅ Stats refreshed successfully');
+      }
     } catch (error) {
       setError(handleAPIError(error));
     } finally {
@@ -223,7 +229,10 @@ const AdminDashboard = () => {
                 <p className="text-sm font-semibold text-gray-900">{lastUpdated.toLocaleTimeString()}</p>
               </div>
               <button
-                onClick={() => fetchStats(true)}
+                onClick={() => {
+                  console.log('🔄 Manual refresh requested');
+                  fetchStats(true);
+                }}
                 disabled={loading}
                 className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full text-white hover:shadow-lg transition-all duration-200 disabled:opacity-50"
                 title="Refresh dashboard"
