@@ -179,9 +179,18 @@ const CustomerMenu = () => {
 
   const fetchMenu = useCallback(async () => {
     try {
+      console.log('🔍 Fetching menu for:', { restaurantSlug, tableId });
       const response = await publicAPI.getMenu(restaurantSlug, tableId);
+      console.log('✅ Menu data received:', response.data);
       setMenuData(response.data);
     } catch (error) {
+      console.error('❌ Menu fetch error:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL
+      });
       setError(handleAPIError(error));
     } finally {
       setLoading(false);
@@ -547,6 +556,12 @@ const CustomerMenu = () => {
           <div className="text-6xl mb-4">😕</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Oops! Something went wrong</h2>
           <p className="text-gray-600 mb-6">{error}</p>
+          <div className="text-xs text-gray-500 mb-4 p-3 bg-gray-100 rounded">
+            <p><strong>Debug Info:</strong></p>
+            <p>Restaurant Slug: {restaurantSlug}</p>
+            <p>Table ID: {tableId}</p>
+            <p>API URL: {process.env.NODE_ENV === 'production' ? 'https://qwiks-backend.onrender.com/api' : '/api'}/menu/{restaurantSlug}/{tableId}/</p>
+          </div>
           <button
             onClick={() => window.location.reload()}
             className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:shadow-lg"
