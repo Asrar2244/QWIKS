@@ -11,28 +11,9 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const { user, token } = useAuth();
+  // const { lastPolledAt } = useNotifications();
+  const lastPolledAt = new Date(); // Temporary fallback
 
-  // Debug logging
-  console.log('🎯 AdminDashboard Component Loading', { user: !!user, token: !!token });
-
-
-  const fetchStats = useCallback(async (showSuccessMessage = false) => {
-    try {
-      setLoading(true);
-      const response = await dashboardAPI.getStats();
-      setStats(response.data);
-      setLastUpdated(new Date());
-      setError(''); // Clear any previous errors
-      
-      if (showSuccessMessage) {
-        console.log('✅ Stats refreshed successfully');
-      }
-    } catch (error) {
-      setError(handleAPIError(error));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
     if (user && token) {
@@ -41,16 +22,13 @@ const AdminDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, token]);
 
-  // Refresh stats periodically (every 30 seconds) instead of on every notification poll
+  // Refresh stats whenever notifications poll ticks
   useEffect(() => {
     if (user && token) {
-      const interval = setInterval(() => {
-        fetchStats();
-      }, 30000); // 30 seconds
-      
-      return () => clearInterval(interval);
+      fetchStats();
     }
-  }, [user, token, fetchStats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastPolledAt, user, token]);
 
   // Update document title with restaurant name
   useEffect(() => {
@@ -65,16 +43,13 @@ const AdminDashboard = () => {
       document.title = 'QR Menu Admin';
     };
   }, [stats?.restaurant?.name]);
+
+  const fetchStats = useCallback(async (showSuccessMessage = false) => {
     try {
-      setLoading(true);
       const response = await dashboardAPI.getStats();
       setStats(response.data);
       setLastUpdated(new Date());
       setError(''); // Clear any previous errors
-      
-      if (showSuccessMessage) {
-        console.log('✅ Stats refreshed successfully');
-      }
     } catch (error) {
       setError(handleAPIError(error));
     } finally {
@@ -248,10 +223,7 @@ const AdminDashboard = () => {
                 <p className="text-sm font-semibold text-gray-900">{lastUpdated.toLocaleTimeString()}</p>
               </div>
               <button
-                onClick={() => {
-                  console.log('🔄 Manual refresh requested');
-                  fetchStats(true);
-                }}
+                onClick={() => fetchStats(true)}
                 disabled={loading}
                 className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full text-white hover:shadow-lg transition-all duration-200 disabled:opacity-50"
                 title="Refresh dashboard"
