@@ -166,6 +166,7 @@ const CustomerMenu = () => {
   console.log('🎯 CustomerMenu Component Loaded');
   console.log('📍 Route Params:', { restaurantSlug, tableId });
   console.log('🌐 Current URL:', window.location.href);
+  console.log('🔍 Component State:', { loading, error, menuData: !!menuData });
   
   const [menuData, setMenuData] = useState(null);
   const [cart, setCart] = useState([]);

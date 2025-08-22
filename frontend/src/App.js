@@ -21,13 +21,17 @@ import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
+  // Debug logging for route matching
+  console.log('🚀 App Component Rendered');
+  console.log('📍 Current Pathname:', window.location.pathname);
+  
   return (
     <AuthProvider>
       {/* <NotificationProvider> */}
         <Router>
           <div className="App">
             <Routes>
-            {/* Customer Routes - Must come FIRST to avoid conflicts */}
+            {/* Customer Routes - Completely Public, No Authentication */}
             <Route path="/menu/:restaurantSlug/:tableId" element={<CustomerMenu />} />
             <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
             
@@ -35,18 +39,48 @@ function App() {
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/register" element={<AdminRegister />} />
             
-            {/* Protected Admin Routes with Layout */}
-            <Route path="/admin/*" element={
+            {/* Protected Admin Routes - More Specific */}
+            <Route path="/admin/dashboard" element={
               <ProtectedRoute>
                 <AdminLayout>
-                  <Routes>
-                    <Route index element={<AdminDashboard />} />
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="restaurant" element={<RestaurantSettings />} />
-                    <Route path="tables" element={<TablesManagement />} />
-                    <Route path="menu" element={<MenuManagement />} />
-                    <Route path="orders" element={<OrdersManagement />} />
-                  </Routes>
+                  <AdminDashboard />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/restaurant" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <RestaurantSettings />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/tables" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <TablesManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/menu" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <MenuManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/orders" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <OrdersManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Default admin route */}
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <AdminDashboard />
                 </AdminLayout>
               </ProtectedRoute>
             } />

@@ -99,7 +99,8 @@ const AdminDashboard = () => {
 
   // Test customer menu function
   const testCustomerMenu = () => {
-    const testUrl = `/#/menu/${user?.restaurant?.slug || 'test'}/1`;
+    const testUrl = `/menu/${user?.restaurant?.slug || 'test'}/1`;
+    console.log('🧪 Testing customer menu URL:', testUrl);
     window.open(testUrl, '_blank');
   };
 
