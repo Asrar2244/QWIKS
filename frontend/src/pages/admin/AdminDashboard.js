@@ -97,6 +97,12 @@ const AdminDashboard = () => {
     </div>
   );
 
+  // Test customer menu function
+  const testCustomerMenu = () => {
+    const testUrl = `/#/menu/${user?.restaurant?.slug || 'test'}/1`;
+    window.open(testUrl, '_blank');
+  };
+
   const QuickAction = ({ title, description, icon, link, gradient, badge }) => (
     <Link 
       to={link}
@@ -382,6 +388,27 @@ const AdminDashboard = () => {
             gradient="bg-gradient-to-r from-amber-500 to-orange-500"
             badge={stats?.orders?.pending > 0 ? `${stats.orders.pending} pending` : null}
           />
+        </div>
+      </div>
+
+      {/* Test Customer Menu */}
+      <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900">Test Customer Menu</h3>
+            <p className="text-gray-600">Test the public customer menu to ensure QR codes work</p>
+          </div>
+          <button 
+            onClick={testCustomerMenu}
+            className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-shadow duration-200"
+          >
+            Test Customer Menu
+          </button>
+        </div>
+        <div className="text-sm text-gray-600">
+          <p>• This will open the customer menu in a new tab</p>
+          <p>• Use this to test if the menu loads correctly</p>
+          <p>• QR codes should open this same menu</p>
         </div>
       </div>
 

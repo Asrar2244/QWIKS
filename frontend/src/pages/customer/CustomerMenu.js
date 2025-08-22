@@ -162,6 +162,11 @@ const CustomerMenu = () => {
   const { restaurantSlug, tableId } = useParams();
   const navigate = useNavigate();
   
+  // Debug logging
+  console.log('🎯 CustomerMenu Component Loaded');
+  console.log('📍 Route Params:', { restaurantSlug, tableId });
+  console.log('🌐 Current URL:', window.location.href);
+  
   const [menuData, setMenuData] = useState(null);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);

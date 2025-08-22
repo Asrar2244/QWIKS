@@ -27,7 +27,7 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-            {/* Customer Routes - No Layout */}
+            {/* Customer Routes - Completely Public, No Authentication Required */}
             <Route path="/menu/:restaurantSlug/:tableId" element={<CustomerMenu />} />
             <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
             
@@ -35,8 +35,8 @@ function App() {
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/register" element={<AdminRegister />} />
             
-            {/* Protected Admin Routes with Layout */}
-            <Route path="/admin/*" element={
+            {/* Protected Admin Routes */}
+            <Route path="/admin" element={
               <ProtectedRoute>
                 <AdminLayout>
                   <Routes>
