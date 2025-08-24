@@ -35,6 +35,20 @@ const apiClient = axios.create({
   withCredentials: true, // Enable credentials for CORS
 });
 
+// Helper function to create FormData client
+const createFormDataClient = () => {
+  const client = axios.create({
+    baseURL: API_BASE_URL,
+    // Don't set Content-Type - let the browser set it with boundary for FormData
+    withCredentials: true,
+  });
+  
+  // Add interceptors to FormData client
+  addFormDataInterceptors(client);
+  
+  return client;
+};
+
 // Add request interceptor for debugging and authentication
 apiClient.interceptors.request.use(
   (config) => {
@@ -42,6 +56,7 @@ apiClient.interceptors.request.use(
     console.log('🚀 API Request:', config.method?.toUpperCase(), fullUrl);
     console.log('📡 Base URL:', config.baseURL);
     console.log('🔗 Endpoint:', config.url);
+    console.log('📋 Content-Type:', config.headers['Content-Type']);
     
     // Add authorization header if token exists
     const token = localStorage.getItem('token');
@@ -59,6 +74,51 @@ apiClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
+// Add request interceptor for FormData client
+const addFormDataInterceptors = (client) => {
+  client.interceptors.request.use(
+    (config) => {
+      const fullUrl = config.baseURL + config.url;
+      console.log('🚀 FormData API Request:', config.method?.toUpperCase(), fullUrl);
+      console.log('📡 Base URL:', config.baseURL);
+      console.log('🔗 Endpoint:', config.url);
+      console.log('📋 Content-Type:', config.headers['Content-Type']);
+      
+      // Add authorization header if token exists
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('🔐 Auth token included');
+      } else {
+        console.log('⚠️ No auth token available');
+      }
+      
+      return config;
+    },
+    (error) => {
+      console.error('❌ FormData Request Error:', error);
+      return Promise.reject(error);
+    }
+  );
+  
+  client.interceptors.response.use(
+    (response) => {
+      console.log('✅ FormData API Response:', response.status, response.config.url);
+      return response;
+    },
+    (error) => {
+      console.error('❌ FormData API Error:', {
+        status: error.response?.status,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        fullURL: error.config?.baseURL + error.config?.url,
+        message: error.message
+      });
+      return Promise.reject(error);
+    }
+  );
+};
 
 // Add response interceptor for debugging and token refresh
 apiClient.interceptors.response.use(
@@ -146,8 +206,22 @@ export const menuItemsAPI = {
     const params = categoryId ? `?category=${categoryId}` : '';
     return apiClient.get(`/menu-items/${params}`);
   },
-  create: (data) => apiClient.post(`/menu-items/`, data),
-  update: (id, data) => apiClient.patch(`/menu-items/${id}/`, data),
+  create: (data) => {
+    // Use FormData client for file uploads
+    if (data instanceof FormData) {
+      const formDataClient = createFormDataClient();
+      return formDataClient.post(`/menu-items/`, data);
+    }
+    return apiClient.post(`/menu-items/`, data);
+  },
+  update: (id, data) => {
+    // Use FormData client for file uploads
+    if (data instanceof FormData) {
+      const formDataClient = createFormDataClient();
+      return formDataClient.patch(`/menu-items/${id}/`, data);
+    }
+    return apiClient.patch(`/menu-items/${id}/`, data);
+  },
   delete: (id) => apiClient.delete(`/menu-items/${id}/`),
 };
 
