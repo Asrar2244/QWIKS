@@ -11,3 +11,5 @@ boto3==1.34.144
 gunicorn
 whitenoise==6.6.0
 setuptools>=70.0.0
+dj-database-url==2.1.0
+psycopg2-binary==2.9.9
