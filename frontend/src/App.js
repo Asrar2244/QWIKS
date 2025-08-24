@@ -30,6 +30,14 @@ function App() {
     pathSegments: window.location.pathname.split('/').filter(Boolean)
   });
   
+  // Check if we're on a customer menu route
+  const isCustomerMenuRoute = window.location.pathname.startsWith('/menu/');
+  if (isCustomerMenuRoute) {
+    console.log('🎯 CUSTOMER MENU ROUTE DETECTED!');
+    console.log('📍 Full URL:', window.location.href);
+    console.log('🔍 Route should match: /menu/:restaurantSlug/:tableId');
+  }
+  
   return (
     <AuthProvider>
       {/* <NotificationProvider> */}
@@ -92,6 +100,9 @@ function App() {
             
             {/* Default redirect */}
             <Route path="/" element={<AdminLogin />} />
+            
+            {/* Catch-all route - redirect to admin login for unmatched routes */}
+            <Route path="*" element={<AdminLogin />} />
             </Routes>
           </div>
         </Router>
