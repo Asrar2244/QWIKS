@@ -167,6 +167,14 @@ const CustomerMenu = () => {
   console.log('📍 Route Params:', { restaurantSlug, tableId });
   console.log('🌐 Current URL:', window.location.href);
   console.log('🔍 Component State:', { loading, error, menuData: !!menuData });
+  console.log('🚫 Route Guard: This should NEVER redirect to admin');
+  
+  // Route guard - ensure we're on the right route
+  useEffect(() => {
+    if (window.location.pathname.startsWith('/admin')) {
+      console.error('❌ ROUTE CONFLICT: CustomerMenu loaded on admin route!');
+    }
+  }, []);
   
   const [menuData, setMenuData] = useState(null);
   const [cart, setCart] = useState([]);

@@ -24,6 +24,11 @@ function App() {
   // Debug logging for route matching
   console.log('🚀 App Component Rendered');
   console.log('📍 Current Pathname:', window.location.pathname);
+  console.log('🔍 Route Analysis:', {
+    isMenuRoute: window.location.pathname.startsWith('/menu/'),
+    isAdminRoute: window.location.pathname.startsWith('/admin/'),
+    pathSegments: window.location.pathname.split('/').filter(Boolean)
+  });
   
   return (
     <AuthProvider>
@@ -31,7 +36,7 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-            {/* Customer Routes - Completely Public, No Authentication */}
+            {/* Customer Routes - Completely Public, No Authentication - MUST BE FIRST */}
             <Route path="/menu/:restaurantSlug/:tableId" element={<CustomerMenu />} />
             <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
             
