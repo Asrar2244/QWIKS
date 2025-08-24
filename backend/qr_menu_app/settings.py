@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'restaurants',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -182,12 +183,20 @@ AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
 
-# Use S3 for file storage if a bucket name is provided
-if AWS_STORAGE_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+# Use Render's built-in storage in production, local in development
+if not DEBUG:
+    # Production: Use Render's storage
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = '/opt/render/project/src/media'
+    
+    # Ensure media directories exist
+    import os
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+    os.makedirs(os.path.join(MEDIA_ROOT, 'qr_codes'), exist_ok=True)
+    os.makedirs(os.path.join(MEDIA_ROOT, 'menu_items'), exist_ok=True)
+    os.makedirs(os.path.join(MEDIA_ROOT, 'restaurant_logos'), exist_ok=True)
 else:
-    # Fallback to local storage for development
+    # Development: Use local storage
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 

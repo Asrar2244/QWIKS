@@ -3,10 +3,20 @@ services:
     name: qr-menu-backend
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python manage.py migrate && python manage.py collectstatic --noinput && gunicorn qr_menu_app.wsgi:application
+    startCommand: |
+      mkdir -p /opt/render/project/src/media/qr_codes
+      mkdir -p /opt/render/project/src/media/menu_items
+      mkdir -p /opt/render/project/src/media/restaurant_logos
+      python manage.py migrate
+      python manage.py collectstatic --noinput
+      gunicorn qr_menu_app.wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.16
+      - key: SECRET_KEY
+        value: "django-insecure-change-this-in-production-12345"
+      - key: DEBUG
+        value: "False"
       - key: FRONTEND_URL
         value: https://qwiks-frontend.onrender.com
       - key: ALLOWED_HOSTS
