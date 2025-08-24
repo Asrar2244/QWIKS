@@ -377,7 +377,18 @@ const MenuManagement = () => {
       const formData = new FormData();
       Object.keys(itemForm).forEach(key => {
         if (key === 'image' && itemForm[key] && typeof itemForm[key] === 'object') {
-          formData.append(key, itemForm[key]);
+          // Handle image field properly - ensure it's not an array
+          const imageValue = itemForm[key];
+          if (Array.isArray(imageValue)) {
+            // If it's an array, take the first item or null
+            if (imageValue.length > 0) {
+              formData.append(key, imageValue[0]);
+            }
+            // If array is empty, don't append anything (null)
+          } else {
+            // Single file object
+            formData.append(key, imageValue);
+          }
         } else if (key !== 'image_url') {
           formData.append(key, itemForm[key]);
         }
