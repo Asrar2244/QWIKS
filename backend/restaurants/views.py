@@ -172,20 +172,27 @@ class MenuItemViewSet(viewsets.ModelViewSet):
         return queryset
     
     def update(self, request, *args, **kwargs):
-        """Override update method to add debugging"""
+        """Override update method to add debugging and better error handling"""
         print(f"🔍 MenuItem Update Request:")
         print(f"   • Method: {request.method}")
         print(f"   • Data: {request.data}")
         print(f"   • Files: {request.FILES}")
         print(f"   • Content-Type: {request.content_type}")
         
-        # Call parent method
-        response = super().update(request, *args, **kwargs)
-        
-        if response.status_code == 400:
-            print(f"❌ Validation Error: {response.data}")
-        
-        return response
+        try:
+            # Call parent method
+            response = super().update(request, *args, **kwargs)
+            
+            if response.status_code == 400:
+                print(f"❌ Validation Error: {response.data}")
+            
+            return response
+        except Exception as e:
+            print(f"❌ Unexpected Error in MenuItem Update: {e}")
+            return Response(
+                {'error': 'An unexpected error occurred while updating the menu item'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 # Order Views

@@ -214,15 +214,30 @@ class MenuItemSerializer(serializers.ModelSerializer):
         """Custom validation for incoming data"""
         print(f"🔍 MenuItem Serializer Data: {data}")
         
-        # Handle image field properly
-        if 'image' in data and data['image'] is not None:
-            # If image is a string (URL), remove it to avoid validation errors
-            if isinstance(data['image'], str) and data['image'].startswith('http'):
-                data = data.copy()
-                data.pop('image')
-                print(f"   • Removed image URL: {data['image']}")
-        
-        return super().to_internal_value(data)
+        try:
+            # Handle image field properly
+            if 'image' in data and data['image'] is not None:
+                # If image is a string (URL), remove it to avoid validation errors
+                if isinstance(data['image'], str) and data['image'].startswith('http'):
+                    data = data.copy()
+                    data.pop('image')
+                    print(f"   • Removed image URL: {data['image']}")
+                
+                # Handle array case (frontend might send array)
+                if isinstance(data['image'], list):
+                    if len(data['image']) > 0:
+                        data = data.copy()
+                        data['image'] = data['image'][0]  # Take first item
+                        print(f"   • Converted image array to single item: {data['image']}")
+                    else:
+                        data = data.copy()
+                        data.pop('image')
+                        print(f"   • Removed empty image array")
+            
+            return super().to_internal_value(data)
+        except Exception as e:
+            print(f"❌ Error in to_internal_value: {e}")
+            raise serializers.ValidationError(f"Data processing error: {str(e)}")
 
 
 class OrderItemSerializer(serializers.ModelSerializer):

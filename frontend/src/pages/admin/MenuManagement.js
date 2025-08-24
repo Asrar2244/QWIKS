@@ -112,11 +112,28 @@ const ItemModal = ({
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setImageError('');
+    
     // Validate image only on create, not on edit
     if (!isEditing && !formData.image) {
-      setImageError('An image is required.');
+      setImageError('An image is required for new menu items.');
       return;
     }
+    
+    // Validate image file type if image is selected
+    if (formData.image && formData.image.type && !formData.image.type.startsWith('image/')) {
+      setImageError('Please select a valid image file (JPEG, PNG, GIF, etc.).');
+      return;
+    }
+    
+    // Validate image size (max 5MB)
+    if (formData.image && formData.image.size && formData.image.size > 5 * 1024 * 1024) {
+      setImageError('Image file size must be less than 5MB.');
+      return;
+    }
+    
     onSubmit(e);
   };
 

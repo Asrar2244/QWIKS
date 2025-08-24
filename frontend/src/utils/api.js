@@ -186,6 +186,27 @@ export const handleAPIError = (error) => {
   if (error.response) {
     // Server responded with error status
     console.error('API Error:', error.response.data);
+    
+    // Handle specific error cases
+    if (error.response.data.image && Array.isArray(error.response.data.image)) {
+      return 'Image upload error: Please select a valid image file';
+    }
+    
+    // Handle validation errors
+    if (error.response.data.non_field_errors) {
+      return error.response.data.non_field_errors.join(', ');
+    }
+    
+    // Handle field-specific errors
+    const fieldErrors = Object.entries(error.response.data)
+      .filter(([key, value]) => key !== 'image' && Array.isArray(value))
+      .map(([key, value]) => `${key}: ${value.join(', ')}`)
+      .join('; ');
+    
+    if (fieldErrors) {
+      return fieldErrors;
+    }
+    
     return error.response.data.detail || error.response.data.error || 'An error occurred';
   } else if (error.request) {
     // Request was made but no response received
