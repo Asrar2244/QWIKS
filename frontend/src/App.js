@@ -36,6 +36,10 @@ function App() {
     console.log('🎯 CUSTOMER MENU ROUTE DETECTED!');
     console.log('📍 Full URL:', window.location.href);
     console.log('🔍 Route should match: /menu/:restaurantSlug/:tableId');
+  } else {
+    console.log('❌ NOT on customer menu route');
+    console.log('📍 Current pathname:', window.location.pathname);
+    console.log('🔍 Expected: /menu/taj-darbar/1, Got:', window.location.pathname);
   }
   
   return (
@@ -47,6 +51,17 @@ function App() {
             {/* Customer Routes - Completely Public, No Authentication - MUST BE FIRST */}
             <Route path="/menu/:restaurantSlug/:tableId" element={<CustomerMenu />} />
             <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
+            
+            {/* Test route to verify routing works */}
+            <Route path="/test" element={
+              <div className="min-h-screen bg-green-100 flex items-center justify-center">
+                <div className="text-center">
+                  <h1 className="text-4xl font-bold text-green-800 mb-4">✅ Test Route Working!</h1>
+                  <p className="text-green-600">If you see this, routing is working correctly.</p>
+                  <p className="text-sm text-green-500 mt-2">Current pathname: {window.location.pathname}</p>
+                </div>
+              </div>
+            } />
             
             {/* Admin Authentication Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
