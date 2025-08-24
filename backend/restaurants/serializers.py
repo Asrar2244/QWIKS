@@ -195,6 +195,34 @@ class MenuItemSerializer(serializers.ModelSerializer):
             if value.restaurant != request.user.restaurant:
                 raise serializers.ValidationError("Category must belong to your restaurant")
         return value
+    
+    def validate_image(self, value):
+        """Validate image field"""
+        if value is not None:
+            # Check if it's a valid image file
+            if hasattr(value, 'content_type'):
+                if not value.content_type.startswith('image/'):
+                    raise serializers.ValidationError("File must be an image")
+            
+            # Check file size (max 5MB)
+            if hasattr(value, 'size') and value.size > 5 * 1024 * 1024:
+                raise serializers.ValidationError("Image file size must be less than 5MB")
+        
+        return value
+    
+    def to_internal_value(self, data):
+        """Custom validation for incoming data"""
+        print(f"🔍 MenuItem Serializer Data: {data}")
+        
+        # Handle image field properly
+        if 'image' in data and data['image'] is not None:
+            # If image is a string (URL), remove it to avoid validation errors
+            if isinstance(data['image'], str) and data['image'].startswith('http'):
+                data = data.copy()
+                data.pop('image')
+                print(f"   • Removed image URL: {data['image']}")
+        
+        return super().to_internal_value(data)
 
 
 class OrderItemSerializer(serializers.ModelSerializer):

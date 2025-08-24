@@ -170,6 +170,22 @@ class MenuItemViewSet(viewsets.ModelViewSet):
         if category:
             queryset = queryset.filter(category=category)
         return queryset
+    
+    def update(self, request, *args, **kwargs):
+        """Override update method to add debugging"""
+        print(f"🔍 MenuItem Update Request:")
+        print(f"   • Method: {request.method}")
+        print(f"   • Data: {request.data}")
+        print(f"   • Files: {request.FILES}")
+        print(f"   • Content-Type: {request.content_type}")
+        
+        # Call parent method
+        response = super().update(request, *args, **kwargs)
+        
+        if response.status_code == 400:
+            print(f"❌ Validation Error: {response.data}")
+        
+        return response
 
 
 # Order Views
