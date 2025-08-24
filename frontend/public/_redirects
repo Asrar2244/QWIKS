@@ -1,3 +1,12 @@
 # Handle client-side routing
 # Redirect all routes to index.html so React Router can handle them
-/*    /index.html   200
+# This ensures React Router can handle all routes including /menu/*
+
+# Specific routes
+/admin/*    /index.html   200
+/menu/*     /index.html   200
+/order-confirmation/*    /index.html   200
+/test       /index.html   200
+
+# Catch-all for any other routes
+/*          /index.html   200

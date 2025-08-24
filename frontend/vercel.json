@@ -1,6 +1,22 @@
 {
   "rewrites": [
     {
+      "source": "/admin/*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/menu/*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/order-confirmation/*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/test",
+      "destination": "/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
