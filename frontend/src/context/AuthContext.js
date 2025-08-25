@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { apiClient, restaurantAPI } from '../utils/api';
+import { restaurantAPI } from '../utils/api';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -55,7 +56,12 @@ export const AuthProvider = ({ children }) => {
     if (!refreshToken) return null;
     
     try {
-      const response = await apiClient.post(`/auth/token/refresh/`, { 
+      // Use the same base URL as our API configuration
+      const baseURL = process.env.NODE_ENV === 'production' 
+        ? 'https://qwiks-backend.onrender.com/api'
+        : '/api';
+      
+      const response = await axios.post(`${baseURL}/auth/token/refresh/`, { 
         refresh: refreshToken 
       });
       
@@ -79,7 +85,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await apiClient.post(`/auth/login/`, credentials);
+      // Use the same base URL as our API configuration
+      const baseURL = process.env.NODE_ENV === 'production' 
+        ? 'https://qwiks-backend.onrender.com/api'
+        : '/api';
+      
+      const response = await axios.post(`${baseURL}/auth/login/`, credentials);
       const { access: loginAccess, refresh: loginRefresh, user: loginUserData } = response.data;
       
       setToken(loginAccess);
@@ -100,7 +111,12 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (registrationData) => {
     try {
-      const response = await apiClient.post(`/auth/register/`, registrationData);
+      // Use the same base URL as our API configuration
+      const baseURL = process.env.NODE_ENV === 'production' 
+        ? 'https://qwiks-backend.onrender.com/api'
+        : '/api';
+      
+      const response = await axios.post(`${baseURL}/auth/register/`, registrationData);
       const { access: registerAccess, refresh: registerRefresh, user: registerUserData } = response.data;
       
       setToken(registerAccess);
