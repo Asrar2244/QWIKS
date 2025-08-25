@@ -30,6 +30,12 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,qwiks-backend.onrender.com', cast=lambda v: [s.strip() for s in v.split(',')])
 
+# CSRF trusted origins (required for HTTPS deployments / proxy)
+CSRF_TRUSTED_ORIGINS = [
+    'https://qwiks-backend.onrender.com',
+    'https://qwiks-frontend.onrender.com',
+]
+
 
 # Application definition
 
@@ -93,7 +99,11 @@ if config('DATABASE_URL', default=None):
     # Production: Use PostgreSQL from DATABASE_URL
     import dj_database_url
     DATABASES = {
-        'default': dj_database_url.parse(config('DATABASE_URL'))
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
 else:
     # Development: Use local SQLite
@@ -164,6 +174,9 @@ if not DEBUG:
     # Add cache headers
     WHITENOISE_USE_FINDERS = True
     WHITENOISE_AUTOREFRESH = True
+    
+    # Respect X-Forwarded-Proto header from Render proxy
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 else:
     # Use default storage for development
     STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
@@ -294,9 +307,6 @@ CORS_EXPOSE_HEADERS = [
     'content-type',
     'content-disposition',
 ]
-
-# Allow credentials and cookies
-CORS_ALLOW_CREDENTIALS = True
 
 # Handle preflight requests
 CORS_PREFLIGHT_MAX_AGE = 86400
