@@ -82,6 +82,10 @@ const ItemModal = ({
   setImageError,
   imagePreview,
   setImagePreview,
+  error,
+  setError,
+  menuItems,
+  editingItem,
 }) => {
   if (!isOpen) return null;
 
@@ -891,6 +895,10 @@ const MenuManagement = () => {
         setImageError={setImageError}
         imagePreview={imagePreview}
         setImagePreview={setImagePreview}
+        error={error}
+        setError={setError}
+        menuItems={menuItems}
+        editingItem={editingItem}
       />
     </div>
   );
