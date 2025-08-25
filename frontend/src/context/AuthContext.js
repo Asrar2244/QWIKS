@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { restaurantAPI } from '../utils/api';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { apiClient, restaurantAPI } from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -56,12 +55,7 @@ export const AuthProvider = ({ children }) => {
     if (!refreshToken) return null;
     
     try {
-      // Use the same base URL as our API configuration
-      const baseURL = process.env.NODE_ENV === 'production' 
-        ? 'https://qwiks-backend.onrender.com/api'
-        : '/api';
-      
-      const response = await axios.post(`${baseURL}/auth/token/refresh/`, { 
+      const response = await apiClient.post(`/auth/token/refresh/`, { 
         refresh: refreshToken 
       });
       
@@ -85,12 +79,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      // Use the same base URL as our API configuration
-      const baseURL = process.env.NODE_ENV === 'production' 
-        ? 'https://qwiks-backend.onrender.com/api'
-        : '/api';
-      
-      const response = await axios.post(`${baseURL}/auth/login/`, credentials);
+      const response = await apiClient.post(`/auth/login/`, credentials);
       const { access: loginAccess, refresh: loginRefresh, user: loginUserData } = response.data;
       
       setToken(loginAccess);
@@ -111,12 +100,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (registrationData) => {
     try {
-      // Use the same base URL as our API configuration
-      const baseURL = process.env.NODE_ENV === 'production' 
-        ? 'https://qwiks-backend.onrender.com/api'
-        : '/api';
-      
-      const response = await axios.post(`${baseURL}/auth/register/`, registrationData);
+      const response = await apiClient.post(`/auth/register/`, registrationData);
       const { access: registerAccess, refresh: registerRefresh, user: registerUserData } = response.data;
       
       setToken(registerAccess);

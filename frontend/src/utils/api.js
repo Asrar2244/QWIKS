@@ -43,8 +43,49 @@ const createFormDataClient = () => {
     withCredentials: true,
   });
   
-  // Add interceptors to FormData client
-  addFormDataInterceptors(client);
+  // Add the same request interceptor for authentication
+  client.interceptors.request.use(
+    (config) => {
+      const fullUrl = config.baseURL + config.url;
+      console.log('🚀 FormData API Request:', config.method?.toUpperCase(), fullUrl);
+      console.log('📡 Base URL:', config.baseURL);
+      console.log('🔗 Endpoint:', config.url);
+      console.log('📋 Content-Type:', config.headers['Content-Type']);
+      
+      // Add authorization header if token exists
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('🔐 Auth token included');
+      } else {
+        console.log('⚠️ No auth token available');
+      }
+      
+      return config;
+    },
+    (error) => {
+      console.error('❌ FormData Request Error:', error);
+      return Promise.reject(error);
+    }
+  );
+  
+  // Add the same response interceptor
+  client.interceptors.response.use(
+    (response) => {
+      console.log('✅ FormData API Response:', response.status, response.config.url);
+      return response;
+    },
+    (error) => {
+      console.error('❌ FormData API Error:', {
+        status: error.response?.status,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        fullURL: error.config?.baseURL + error.config?.url,
+        message: error.message
+      });
+      return Promise.reject(error);
+    }
+  );
   
   return client;
 };
