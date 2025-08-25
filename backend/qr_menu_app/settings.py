@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-your-secret-key-here-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,qwiks-backend.onrender.com', cast=lambda v: [s.strip() for s in v.split(',')])
 
@@ -95,12 +95,13 @@ WSGI_APPLICATION = 'qr_menu_app.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Use PostgreSQL in production (Render), SQLite in development
-if config('DATABASE_URL', default=None):
+db_url = os.environ.get('DATABASE_URL') or config('DATABASE_URL', default=None)
+if db_url:
     # Production: Use PostgreSQL from DATABASE_URL
     import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
+            default=db_url,
             conn_max_age=600,
             ssl_require=True,
         )
