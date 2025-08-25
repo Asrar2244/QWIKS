@@ -196,6 +196,36 @@ class MenuItemSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Category must belong to your restaurant")
         return value
     
+    def validate(self, attrs):
+        """Custom validation for menu items"""
+        request = self.context.get('request')
+        if not request or not hasattr(request.user, 'restaurant'):
+            raise serializers.ValidationError("User must be associated with a restaurant")
+        
+        restaurant = request.user.restaurant
+        name = attrs.get('name')
+        category = attrs.get('category')
+        
+        # Check for duplicate names in the same category
+        if name and category:
+            # Exclude current instance if updating
+            instance = self.instance
+            existing_item = MenuItem.objects.filter(
+                restaurant=restaurant,
+                category=category,
+                name=name
+            )
+            
+            if instance:
+                existing_item = existing_item.exclude(pk=instance.pk)
+            
+            if existing_item.exists():
+                raise serializers.ValidationError({
+                    'name': f'A menu item with the name "{name}" already exists in the "{category.name}" category.'
+                })
+        
+        return attrs
+    
     def validate_image(self, value):
         """Validate image field"""
         if value is not None:

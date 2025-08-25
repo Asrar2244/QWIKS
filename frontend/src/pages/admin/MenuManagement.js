@@ -115,6 +115,7 @@ const ItemModal = ({
     
     // Clear previous errors
     setImageError('');
+    setError('');
     
     // Validate image only on create, not on edit
     if (!isEditing && !formData.image) {
@@ -131,6 +132,18 @@ const ItemModal = ({
     // Validate image size (max 5MB)
     if (formData.image && formData.image.size && formData.image.size > 5 * 1024 * 1024) {
       setImageError('Image file size must be less than 5MB.');
+      return;
+    }
+    
+    // Check for duplicate names in the same category
+    const existingItem = menuItems.find(item => 
+      item.name.toLowerCase() === formData.name.toLowerCase() && 
+      item.category === formData.category &&
+      (!isEditing || item.id !== editingItem?.id)
+    );
+    
+    if (existingItem) {
+      setError(`A menu item with the name "${formData.name}" already exists in this category. Please choose a different name.`);
       return;
     }
     
@@ -154,6 +167,15 @@ const ItemModal = ({
           )}
           
           <form onSubmit={handleFormSubmit} className="space-y-3">
+            {/* Display general errors */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-sm text-red-800">
+                  ❌ {error}
+                </p>
+              </div>
+            )}
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>

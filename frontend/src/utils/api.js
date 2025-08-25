@@ -261,6 +261,16 @@ export const handleAPIError = (error) => {
     // Server responded with error status
     console.error('API Error:', error.response.data);
     
+    // Handle HTML error responses (Django debug pages)
+    if (typeof error.response.data === 'string' && error.response.data.includes('<!DOCTYPE html>')) {
+      // Extract error message from HTML if possible
+      const errorMatch = error.response.data.match(/<pre class="exception_value">([^<]+)<\/pre>/);
+      if (errorMatch) {
+        return `Server Error: ${errorMatch[1]}`;
+      }
+      return 'Server Error: Please try again or contact support';
+    }
+    
     // Handle specific error cases
     if (error.response.data.image && Array.isArray(error.response.data.image)) {
       return 'Image upload error: Please select a valid image file';
