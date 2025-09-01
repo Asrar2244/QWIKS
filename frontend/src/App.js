@@ -20,6 +20,16 @@ import OrderConfirmation from './pages/customer/OrderConfirmation';
 import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
+// Simple test component
+const SimpleCustomerMenu = () => (
+  <div style={{padding: '20px', background: 'lightgreen', minHeight: '100vh'}}>
+    <h1>🎯 CUSTOMER MENU WORKING!</h1>
+    <p>Current URL: {window.location.href}</p>
+    <p>Current Pathname: {window.location.pathname}</p>
+    <p>This proves the routing is working correctly!</p>
+  </div>
+);
+
 function App() {
   // Debug logging for route matching
   console.log('🚀 App Component Rendered');
@@ -47,14 +57,7 @@ function App() {
       <div className="App">
         <Routes>
           {/* Customer Routes - Completely Public, No Authentication - MUST BE FIRST */}
-          <Route path="/menu/:restaurantSlug/:tableId" element={
-            <div>
-              <div style={{position: 'fixed', top: 0, left: 0, background: 'red', color: 'white', padding: '10px', zIndex: 9999}}>
-                🎯 CUSTOMER MENU ROUTE MATCHED!
-              </div>
-              <CustomerMenu />
-            </div>
-          } />
+          <Route path="/menu/:restaurantSlug/:tableId" element={<SimpleCustomerMenu />} />
           <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
           
           {/* Test route to verify routing works */}
