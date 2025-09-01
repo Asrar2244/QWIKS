@@ -215,6 +215,55 @@ apiClient.interceptors.response.use(
   }
 );
 
+// Public API Client (no authentication needed)
+const publicAPIClient = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  timeout: 10000,
+});
+
+// Add request interceptor for public API (no auth token)
+publicAPIClient.interceptors.request.use(
+  (config) => {
+    console.log('🚀 Public API Request:', config.method?.toUpperCase(), config.url);
+    console.log('📡 Base URL:', config.baseURL);
+    console.log('🔗 Endpoint:', config.url);
+    console.log('🔓 Public API - No auth token needed');
+    return config;
+  },
+  (error) => {
+    console.error('❌ Public API Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for public API
+publicAPIClient.interceptors.response.use(
+  (response) => {
+    console.log('✅ Public API Response:', response.status, response.config.url);
+    return response;
+  },
+  (error) => {
+    console.error('❌ Public API Error:', {
+      status: error.response?.status,
+      url: error.config?.url,
+      baseURL: error.config?.baseURL,
+      fullURL: error.config?.baseURL + error.config?.url,
+      message: error.message,
+      data: error.response?.data
+    });
+    
+    // Handle specific error cases for public API
+    if (error.response?.status === 404) {
+      console.error('🔍 404 - Menu or table not found');
+    } else if (error.response?.status === 500) {
+      console.error('💥 500 - Server error');
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
 // Restaurant API
 export const restaurantAPI = {
   getDetails: () => apiClient.get(`/restaurant/`),
@@ -284,11 +333,11 @@ export const ordersAPI = {
 // Public API (no authentication needed)
 export const publicAPI = {
   getMenu: (restaurantSlug, tableId) => 
-    apiClient.get(`/menu/${restaurantSlug}/${tableId}/`),
+    publicAPIClient.get(`/menu/${restaurantSlug}/${tableId}/`),
   createOrder: (orderData) => 
-    apiClient.post(`/orders/create/`, orderData),
+    publicAPIClient.post(`/orders/create/`, orderData),
   placeOrder: (orderData) => 
-    apiClient.post(`/orders/create/`, orderData),
+    publicAPIClient.post(`/orders/create/`, orderData),
 };
 
 // Dashboard API

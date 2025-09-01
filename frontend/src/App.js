@@ -43,86 +43,89 @@ function App() {
   }
   
   return (
-    <AuthProvider>
-      {/* <NotificationProvider> */}
-        <Router>
-          <div className="App">
-            <Routes>
-            {/* Customer Routes - Completely Public, No Authentication - MUST BE FIRST */}
-            <Route path="/menu/:restaurantSlug/:tableId" element={<CustomerMenu />} />
-            <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
-            
-            {/* Test route to verify routing works */}
-            <Route path="/test" element={
-              <div className="min-h-screen bg-green-100 flex items-center justify-center">
-                <div className="text-center">
-                  <h1 className="text-4xl font-bold text-green-800 mb-4">✅ Test Route Working!</h1>
-                  <p className="text-green-600">If you see this, routing is working correctly.</p>
-                  <p className="text-sm text-green-500 mt-2">Current pathname: {window.location.pathname}</p>
-                </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          {/* Customer Routes - Completely Public, No Authentication - MUST BE FIRST */}
+          <Route path="/menu/:restaurantSlug/:tableId" element={<CustomerMenu />} />
+          <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
+          
+          {/* Test route to verify routing works */}
+          <Route path="/test" element={
+            <div className="min-h-screen bg-green-100 flex items-center justify-center">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-green-800 mb-4">✅ Test Route Working!</h1>
+                <p className="text-green-600">If you see this, routing is working correctly.</p>
+                <p className="text-sm text-green-500 mt-2">Current pathname: {window.location.pathname}</p>
               </div>
-            } />
-            
-            {/* Admin Authentication Routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/register" element={<AdminRegister />} />
-            
-            {/* Protected Admin Routes - More Specific */}
-            <Route path="/admin/dashboard" element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <AdminDashboard />
-                </AdminLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/restaurant" element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <RestaurantSettings />
-                </AdminLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/tables" element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <TablesManagement />
-                </AdminLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/menu" element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <MenuManagement />
-                </AdminLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/orders" element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <OrdersManagement />
-                </AdminLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* Default admin route */}
-            <Route path="/admin" element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <AdminDashboard />
-                </AdminLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* Default redirect */}
-            <Route path="/" element={<AdminLogin />} />
-            
-            {/* Catch-all route - redirect to admin login for unmatched routes */}
-            <Route path="*" element={<AdminLogin />} />
-            </Routes>
-          </div>
-        </Router>
-      {/* </NotificationProvider> */}
-    </AuthProvider>
+            </div>
+          } />
+          
+          {/* Admin Routes - Wrapped in AuthProvider */}
+          <Route path="/*" element={
+            <AuthProvider>
+              <Routes>
+                {/* Admin Authentication Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/register" element={<AdminRegister />} />
+                
+                {/* Protected Admin Routes - More Specific */}
+                <Route path="/admin/dashboard" element={
+                  <ProtectedRoute>
+                    <AdminLayout>
+                      <AdminDashboard />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/restaurant" element={
+                  <ProtectedRoute>
+                    <AdminLayout>
+                      <RestaurantSettings />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/tables" element={
+                  <ProtectedRoute>
+                    <AdminLayout>
+                      <TablesManagement />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/menu" element={
+                  <ProtectedRoute>
+                    <AdminLayout>
+                      <MenuManagement />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/orders" element={
+                  <ProtectedRoute>
+                    <AdminLayout>
+                      <OrdersManagement />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
+                {/* Default admin route */}
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <AdminLayout>
+                      <AdminDashboard />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
+                {/* Default redirect */}
+                <Route path="/" element={<AdminLogin />} />
+                
+                {/* Catch-all route - redirect to admin login for unmatched routes */}
+                <Route path="*" element={<AdminLogin />} />
+              </Routes>
+            </AuthProvider>
+          } />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
