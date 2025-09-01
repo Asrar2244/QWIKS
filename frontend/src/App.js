@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 // import { NotificationProvider } from './context/NotificationContext';
 
@@ -47,7 +47,14 @@ function App() {
       <div className="App">
         <Routes>
           {/* Customer Routes - Completely Public, No Authentication - MUST BE FIRST */}
-          <Route path="/menu/:restaurantSlug/:tableId" element={<CustomerMenu />} />
+          <Route path="/menu/:restaurantSlug/:tableId" element={
+            <div>
+              <div style={{position: 'fixed', top: 0, left: 0, background: 'red', color: 'white', padding: '10px', zIndex: 9999}}>
+                🎯 CUSTOMER MENU ROUTE MATCHED!
+              </div>
+              <CustomerMenu />
+            </div>
+          } />
           <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
           
           {/* Test route to verify routing works */}
