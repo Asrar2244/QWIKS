@@ -7,7 +7,7 @@ services:
       mkdir -p /opt/render/project/src/media/qr_codes
       mkdir -p /opt/render/project/src/media/menu_items
       mkdir -p /opt/render/project/src/media/restaurant_logos
-      python manage.py migrate
+      python manage.py migrate --noinput
       python manage.py ensure_superuser --username=admin --email=admin@qwiks.com --password=admin123
       python manage.py collectstatic --noinput
       gunicorn qr_menu_app.wsgi:application
