@@ -61,44 +61,44 @@ function App() {
             </div>
           } />
           
-          {/* Admin Routes - Wrapped in AuthProvider */}
-          <Route path="/admin/*" element={
+          {/* All other routes (including admin and root) wrapped in AuthProvider */}
+          <Route path="/*" element={
             <AuthProvider>
               <Routes>
-                {/* Admin Authentication Routes */}
-                <Route path="/login" element={<AdminLogin />} />
-                <Route path="/register" element={<AdminRegister />} />
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/register" element={<AdminRegister />} />
                 
-                {/* Protected Admin Routes - More Specific */}
-                <Route path="/dashboard" element={
+                {/* Protected Admin Routes */}
+                <Route path="/admin/dashboard" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <AdminDashboard />
                     </AdminLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/restaurant" element={
+                <Route path="/admin/restaurant" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <RestaurantSettings />
                     </AdminLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/tables" element={
+                <Route path="/admin/tables" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <TablesManagement />
                     </AdminLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/menu" element={
+                <Route path="/admin/menu" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <MenuManagement />
                     </AdminLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/orders" element={
+                <Route path="/admin/orders" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <OrdersManagement />
@@ -107,7 +107,7 @@ function App() {
                 } />
                 
                 {/* Default admin route */}
-                <Route path="/" element={
+                <Route path="/admin" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <AdminDashboard />
@@ -115,15 +115,12 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
-                {/* Catch-all route - redirect to admin login for unmatched admin routes */}
+                {/* Default redirect for root and other non-admin routes */}
+                <Route path="/" element={<AdminLogin />} />
                 <Route path="*" element={<AdminLogin />} />
               </Routes>
             </AuthProvider>
           } />
-          
-          {/* Default redirect for root and other non-admin routes */}
-          <Route path="/" element={<AdminLogin />} />
-          <Route path="*" element={<AdminLogin />} />
         </Routes>
       </div>
     </Router>
