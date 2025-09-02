@@ -20,16 +20,6 @@ import OrderConfirmation from './pages/customer/OrderConfirmation';
 import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
-// Simple test component
-const SimpleCustomerMenu = () => (
-  <div style={{padding: '20px', background: 'lightgreen', minHeight: '100vh'}}>
-    <h1>🎯 CUSTOMER MENU WORKING!</h1>
-    <p>Current URL: {window.location.href}</p>
-    <p>Current Pathname: {window.location.pathname}</p>
-    <p>This proves the routing is working correctly!</p>
-  </div>
-);
-
 function App() {
   // Debug logging for route matching
   console.log('🚀 App Component Rendered');
@@ -57,7 +47,7 @@ function App() {
       <div className="App">
         <Routes>
           {/* Customer Routes - Completely Public, No Authentication - MUST BE FIRST */}
-          <Route path="/menu/:restaurantSlug/:tableId" element={<SimpleCustomerMenu />} />
+          <Route path="/menu/:restaurantSlug/:tableId" element={<CustomerMenu />} />
           <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
           
           {/* Test route to verify routing works */}
@@ -71,44 +61,44 @@ function App() {
             </div>
           } />
           
-          {/* All other routes (including admin) wrapped in AuthProvider */}
-          <Route path="/*" element={
+          {/* Admin Routes - Wrapped in AuthProvider */}
+          <Route path="/admin/*" element={
             <AuthProvider>
               <Routes>
                 {/* Admin Authentication Routes */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin/register" element={<AdminRegister />} />
+                <Route path="/login" element={<AdminLogin />} />
+                <Route path="/register" element={<AdminRegister />} />
                 
                 {/* Protected Admin Routes - More Specific */}
-                <Route path="/admin/dashboard" element={
+                <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <AdminDashboard />
                     </AdminLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/admin/restaurant" element={
+                <Route path="/restaurant" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <RestaurantSettings />
                     </AdminLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/admin/tables" element={
+                <Route path="/tables" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <TablesManagement />
                     </AdminLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/admin/menu" element={
+                <Route path="/menu" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <MenuManagement />
                     </AdminLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/admin/orders" element={
+                <Route path="/orders" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <OrdersManagement />
@@ -117,7 +107,7 @@ function App() {
                 } />
                 
                 {/* Default admin route */}
-                <Route path="/admin" element={
+                <Route path="/" element={
                   <ProtectedRoute>
                     <AdminLayout>
                       <AdminDashboard />
@@ -125,12 +115,15 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
-                {/* Default redirect for root and other non-admin routes */}
-                <Route path="/" element={<AdminLogin />} />
+                {/* Catch-all route - redirect to admin login for unmatched admin routes */}
                 <Route path="*" element={<AdminLogin />} />
               </Routes>
             </AuthProvider>
           } />
+          
+          {/* Default redirect for root and other non-admin routes */}
+          <Route path="/" element={<AdminLogin />} />
+          <Route path="*" element={<AdminLogin />} />
         </Routes>
       </div>
     </Router>
