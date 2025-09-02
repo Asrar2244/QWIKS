@@ -143,11 +143,15 @@ class Table(models.Model):
             self.generate_qr_code()
             super().save(update_fields=['qr_code'])
     
-    @property
     def qr_code_url(self):
-        if self.qr_code:
-            return self.qr_code.url
-        return None
+        """Get QR code URL, regenerate if missing"""
+        if not self.qr_code or not self.qr_code.url:
+            # QR code is missing, regenerate it
+            print(f"🔄 Regenerating QR code for Table {self.number} - {self.restaurant.name}")
+            self.generate_qr_code()
+            self.save(update_fields=['qr_code'])
+        
+        return self.qr_code.url if self.qr_code else None
     
     def __str__(self):
         return f"Table {self.number} - {self.restaurant.name}"

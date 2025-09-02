@@ -205,33 +205,37 @@ else:
     # Use default storage for development
     STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
-# Media files
-# Media files
-# ------------------------------------------------------------------------------
-# Cloud Storage (AWS S3) configuration
-# Will use local storage if these variables are not set
-# ------------------------------------------------------------------------------
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
-AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
-AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default=None)
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
-
-# Use Render's built-in storage in production, local in development
+# Media files configuration
 if not DEBUG:
-    # Production: Use Render's storage
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = '/opt/render/project/src/media'
+    # Production: Use AWS S3 for persistent storage
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
+    AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
+    AWS_LOCATION = 'media'
+    AWS_DEFAULT_ACL = 'public-read'
+    AWS_QUERYSTRING_AUTH = False
     
-    # Ensure media directories exist
-    import os
-    os.makedirs(MEDIA_ROOT, exist_ok=True)
-    os.makedirs(os.path.join(MEDIA_ROOT, 'qr_codes'), exist_ok=True)
-    os.makedirs(os.path.join(MEDIA_ROOT, 'menu_items'), exist_ok=True)
-    os.makedirs(os.path.join(MEDIA_ROOT, 'restaurant_logos'), exist_ok=True)
+    # Use S3 for media files if AWS credentials are provided
+    if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
+        DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+        print(f"✅ Using AWS S3 for media storage: {MEDIA_URL}")
+    else:
+        # Fallback to Render's ephemeral storage (files will be lost on restart)
+        MEDIA_URL = '/media/'
+        MEDIA_ROOT = '/opt/render/project/src/media'
+        import os
+        os.makedirs(MEDIA_ROOT, exist_ok=True)
+        os.makedirs(os.path.join(MEDIA_ROOT, 'qr_codes'), exist_ok=True)
+        os.makedirs(os.path.join(MEDIA_ROOT, 'menu_items'), exist_ok=True)
+        os.makedirs(os.path.join(MEDIA_ROOT, 'restaurant_logos'), exist_ok=True)
+        print("⚠️  WARNING: Using ephemeral storage. Files will be lost on restart!")
+        print("💡 To fix this, set up AWS S3 credentials in Render environment variables")
 else:
     # Development: Use local storage
     MEDIA_URL = '/media/'

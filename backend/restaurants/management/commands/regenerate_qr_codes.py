@@ -3,33 +3,21 @@ from restaurants.models import Table
 
 
 class Command(BaseCommand):
-    help = 'Regenerate QR codes for all tables with correct production URLs'
+    help = 'Regenerate all missing QR codes for tables'
 
     def handle(self, *args, **options):
-        self.stdout.write('Starting QR code regeneration...')
-        
         tables = Table.objects.all()
-        updated_count = 0
+        regenerated_count = 0
         
         for table in tables:
-            try:
-                # Force regenerate QR code
-                if table.qr_code:
-                    # Delete old QR code file
-                    table.qr_code.delete(save=False)
-                
-                # Generate new QR code with correct URL
+            if not table.qr_code or not table.qr_code.url:
+                self.stdout.write(f"🔄 Regenerating QR code for Table {table.number} - {table.restaurant.name}")
                 table.generate_qr_code()
                 table.save(update_fields=['qr_code'])
-                updated_count += 1
-                
-                self.stdout.write(f'✅ Regenerated QR for Table {table.number} ({table.restaurant.name})')
-                
-            except Exception as e:
-                self.stdout.write(
-                    self.style.ERROR(f'❌ Failed to regenerate QR for Table {table.number}: {str(e)}')
-                )
+                regenerated_count += 1
+            else:
+                self.stdout.write(f"✅ QR code exists for Table {table.number} - {table.restaurant.name}")
         
         self.stdout.write(
-            self.style.SUCCESS(f'✅ Successfully regenerated {updated_count} QR codes!')
+            self.style.SUCCESS(f'Successfully regenerated {regenerated_count} QR codes')
         )
