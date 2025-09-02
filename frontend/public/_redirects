@@ -1,0 +1,4 @@
+# Handle client-side routing for React Router
+# Redirect all routes to index.html so React Router can handle them
+
+/*    /index.html   200
