@@ -1,0 +1,37 @@
+{
+  "root": "build/",
+  "routes": [
+    {
+      "src": "/menu/(.*)",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/order-confirmation/(.*)",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/test",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": {
+    "/**": {
+      "Cache-Control": "no-cache, no-store, must-revalidate"
+    },
+    "/static/**": {
+      "Cache-Control": "public, max-age=31536000"
+    }
+  }
+}
