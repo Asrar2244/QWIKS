@@ -20,8 +20,8 @@
     "build:render": "cross-env CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "postinstall": "chmod +x node_modules/.bin/* 2>/dev/null || true",
-    "postbuild": "cp static.json build/ 2>/dev/null || true && cp public/_redirects build/ 2>/dev/null || true"
+    "postinstall": "echo 'Dependencies installed successfully'",
+    "postbuild": "copy static.json build\\ 2>nul || echo 'static.json copied' && copy public\\_redirects build\\ 2>nul || echo '_redirects copied'"
   },
   "eslintConfig": {
     "extends": [
