@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-// import { NotificationProvider } from './context/NotificationContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -61,10 +61,11 @@ function App() {
             </div>
           } />
           
-          {/* All other routes (including admin and root) wrapped in AuthProvider */}
+          {/* All other routes (including admin and root) wrapped in AuthProvider and NotificationProvider */}
           <Route path="/*" element={
             <AuthProvider>
-              <Routes>
+              <NotificationProvider>
+                <Routes>
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/register" element={<AdminRegister />} />
@@ -118,7 +119,8 @@ function App() {
                 {/* Default redirect for root and other non-admin routes */}
                 <Route path="/" element={<AdminLogin />} />
                 <Route path="*" element={<AdminLogin />} />
-              </Routes>
+                </Routes>
+              </NotificationProvider>
             </AuthProvider>
           } />
         </Routes>
