@@ -1,7 +1,6 @@
 services:
-  - type: web
+  - type: static
     name: qr-menu-frontend
-    env: static
     rootDir: frontend
     buildCommand: npm install && npm run build:render
     staticPublishPath: ./build

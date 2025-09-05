@@ -2,7 +2,11 @@
   "root": "build/",
   "clean_urls": true,
   "routes": {
-    "/**": "index.html"
+    "/menu/*": "/index.html",
+    "/admin/*": "/index.html", 
+    "/order-confirmation/*": "/index.html",
+    "/test": "/index.html",
+    "/*": "/index.html"
   },
   "headers": {
     "/**": {
