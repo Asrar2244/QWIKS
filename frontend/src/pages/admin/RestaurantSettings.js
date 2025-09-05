@@ -116,6 +116,12 @@ const RestaurantSettings = () => {
         formData.append('logo', newLogoFile);
       }
 
+      // Debug logging
+      console.log('🔍 FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
       const response = await restaurantAPI.updateDetails(formData);
       setRestaurant(response.data);
       setNewLogoFile(null); // Clear the new logo file state

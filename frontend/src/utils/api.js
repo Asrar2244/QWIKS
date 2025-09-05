@@ -267,7 +267,12 @@ publicAPIClient.interceptors.response.use(
 // Restaurant API
 export const restaurantAPI = {
   getDetails: () => apiClient.get(`/restaurant/`),
-  updateDetails: (data) => apiClient.patch(`/restaurant/`, data),
+  updateDetails: (data) => {
+    if (data instanceof FormData) {
+      return createFormDataClient().patch(`/restaurant/`, data);
+    }
+    return apiClient.patch(`/restaurant/`, data);
+  },
   getBranding: (slug) => apiClient.get(`/restaurant/${slug}/branding/`),
   changePassword: (data) => apiClient.post(`/auth/change-password/`, data),
   forgotPassword: (data) => apiClient.post(`/auth/forgot-password/`, data),

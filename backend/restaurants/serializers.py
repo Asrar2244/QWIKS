@@ -86,6 +86,41 @@ class RestaurantSerializer(serializers.ModelSerializer):
             return obj.logo.url
         return None
 
+    def validate_logo(self, value):
+        """Validate logo file"""
+        if value:
+            # Check file type
+            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+            if value.content_type not in allowed_types:
+                raise serializers.ValidationError(
+                    'Logo must be a valid image file (JPEG, PNG, GIF, or WebP).'
+                )
+            
+            # Check file size (max 5MB)
+            max_size = 5 * 1024 * 1024  # 5MB in bytes
+            if value.size > max_size:
+                raise serializers.ValidationError(
+                    'Logo file size must be less than 5MB.'
+                )
+        
+        return value
+
+    def to_internal_value(self, data):
+        """Handle incoming data, especially for image fields"""
+        # If data is a dict and contains image data that might be problematic
+        if isinstance(data, dict):
+            # Remove logo URLs (strings) to prevent validation errors
+            if 'logo' in data and isinstance(data['logo'], str):
+                data = data.copy()
+                del data['logo']
+            
+            # Handle logo array (take first element if it's an array)
+            if 'logo' in data and isinstance(data['logo'], list) and len(data['logo']) > 0:
+                data = data.copy()
+                data['logo'] = data['logo'][0]
+        
+        return super().to_internal_value(data)
+
 
 class RestaurantBrandingSerializer(serializers.ModelSerializer):
     """Public branding info for customer-facing views"""
