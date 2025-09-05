@@ -166,8 +166,6 @@ const CustomerMenu = () => {
   console.log('🎯 CustomerMenu Component Loaded');
   console.log('📍 Route Params:', { restaurantSlug, tableId });
   console.log('🌐 Current URL:', window.location.href);
-  console.log('🔍 Component State:', { loading, error, menuData: !!menuData });
-  console.log('🚫 Route Guard: This should NEVER redirect to admin');
   
   // Route guard - ensure we're on the right route
   useEffect(() => {
@@ -189,6 +187,10 @@ const CustomerMenu = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+  
+  // Debug logging after state declarations
+  console.log('🔍 Component State:', { loading, error, menuData: !!menuData });
+  console.log('🚫 Route Guard: This should NEVER redirect to admin');
   const [vegFilter, setVegFilter] = useState('all'); // 'all', 'veg', 'non-veg'
 
   const fetchMenu = useCallback(async () => {
